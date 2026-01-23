@@ -1,71 +1,99 @@
-## treer ##
-Treer is a commandline tool to generate directory structure tree
+# @skapxd/tree
 
-<a href="https://badge.fury.io/js/treer"><img src="https://badge.fury.io/js/treer.svg" alt="npm version" height="18"></a>
+[![CI](https://github.com/skapxd/tree/actions/workflows/ci.yml/badge.svg)](https://github.com/skapxd/tree/actions/workflows/ci.yml)
+[![npm version](https://badge.fury.io/js/@skapxd%2Ftree.svg)](https://badge.fury.io/js/@skapxd%2Ftree)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## install ##
+**Visualize your directory structure with professional ASCII art.**
 
-```
-$ npm install treer -g
-```
+A modern, TypeScript-based CLI tool designed to generate clean, tree-like diagrams of your folder structure. It is optimized for **Documentation** and **AI Context**, providing a token-efficient overview of your codebase.
 
-## usage ##
+## 🚀 Quick Start (No Installation)
 
-```
-$ treer --help
+The fastest way to use it is with `npx`. It works instantly in any directory.
 
-  Usage: treer [options]
+```bash
+# View current directory
+npx @skapxd/tree
 
-  Options:
-
-    -h, --help             output usage information
-    -V, --version          output the version number
-    -d, --directory [dir]  Please specify a directory to generate structure tree
-    -i, --ignore [ig]      You can ignore specific directory name
-    -e, --export [epath]   export into file
+# View a specific folder
+npx @skapxd/tree ./src
 ```
 
-## Available Options: ##
-`-d` Specify a directory path to generate it's structure tree
+## 🤖 Optimized for AI Agents & LLMs
 
-`-i` or `--ignore` the directory name pattern to skip, it also support regex:
+This tool is specifically designed to help AI Agents (like ChatGPT, Claude, Gemini, or GitHub Copilot) understand your project architecture **without consuming massive context windows**.
 
-```
-$ treer -i "/^regex$/"
-```
+When you need an AI to understand your project structure, run this command and paste the output:
 
-`-e` or `--export` export into file
-
-### example: ###
-```
-$ treer -e ./result.txt -i .git
-
-
-treer
-├─.DS_Store
-├─.gitignore
-├─README.md
-├─package.json
-├─result.txt
-├─src
-|  └index.js
-├─node_modules
-|      ├─graceful-readlink
-|      |         ├─.npmignore
-|      |         ├─.travis.yml
-|      |         ├─LICENSE
-|      |         ├─README.md
-|      |         ├─index.js
-|      |         └package.json
-|      ├─commander
-|      |     ├─History.md
-|      |     ├─LICENSE
-|      |     ├─Readme.md
-|      |     ├─index.js
-|      |     └package.json
-
-
-The result has been saved into ./result.txt
+```bash
+npx @skapxd/tree ./src
 ```
 
+**Why is this better for AI?**
+*   **Context Focus:** By targeting `./src`, you provide the AI with only the relevant business logic, avoiding noise.
+*   **Token Efficient:** Uses minimal characters to convey maximum structural information.
+*   **High Contrast:** Distinct separation between folders and files helps LLMs parse the hierarchy accurately.
 
+## 🎨 Example Output
+
+```text
+src
+├── index.ts
+├── cli.ts
+├── utils
+│   ├── parser.ts
+│   └── drawer.ts
+└── components
+    ├── Button.tsx
+    └── Header.tsx
+```
+
+## ⚙️ Options
+
+| Flag | Description | Example |
+| :--- | :--- | :--- |
+| `[dir]` | (Positional) Directory to scan. Defaults to current. | `npx @skapxd/tree ./src` |
+| `-i`, `--ignore` | Regex pattern to ignore files/folders. | `-i "node_modules|dist"` |
+| `-f`, `--only-folder` | Output only directories, hiding files. | `-f` |
+| `-e`, `--export` | Save the output to a text file. | `-e structure.txt` |
+| `-d`, `--directory` | (Alternative) Specify directory via flag. | `-d ./src` |
+
+## 📦 Installation (Optional)
+
+If you use it frequently, you can install it globally:
+
+```bash
+npm install -g @skapxd/tree
+# or
+pnpm add -g @skapxd/tree
+```
+
+Then run it simply as:
+```bash
+tree
+# or
+npx @skapxd/tree
+```
+
+## 🛠️ Development
+
+This project uses **TypeScript**, **Tsup** for bundling, and **Vitest** for testing.
+
+```bash
+# Install dependencies
+yarn install
+
+# Run in development mode
+yarn dev
+
+# Build for production
+yarn build
+
+# Run tests
+yarn test
+```
+
+## 📄 License
+
+MIT
