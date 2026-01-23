@@ -1,28 +1,44 @@
 {
-  "name": "treer",
-  "version": "1.0.4",
-  "description": "a directory structure tree generator",
+  "name": "@skapxd/tree",
+  "version": "1.0.0",
+  "description": "A directory structure tree generator for CLI",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "bin": {
-    "treer": "src/index.js"
+    "tree": "./dist/cli.cjs"
   },
-  "main": "index.js",
-  "author": "Deryck Tse",
-  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run -c vitest.unit.config.ts",
+    "test:ui": "vitest --ui -c vitest.unit.config.ts",
+    "test:coverage": "vitest run --coverage -c vitest.unit.config.ts",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/cli.cjs"
+  },
   "keywords": [
     "directory",
-    "dir",
-    "folder",
-    "structure",
-    "tree"
+    "tree",
+    "cli",
+    "ascii",
+    "structure"
   ],
+  "author": "skapxd",
+  "license": "MIT",
   "dependencies": {
-    "commander": "^2.9.0"
+    "commander": "14.0.2"
   },
-  "repository": {
-    "type" : "git",
-    "url" : "git@github.com:derycktse/treer.git"
-  },
-  "bugs": {
-    "url" : "https://github.com/derycktse/treer/issues"
+  "devDependencies": {
+    "@types/commander": "2.12.5",
+    "@types/node": "25.0.10",
+    "@vitest/coverage-v8": "4.0.17",
+    "@vitest/ui": "4.0.17",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.18"
   }
 }
