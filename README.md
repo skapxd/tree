@@ -73,12 +73,17 @@ src
     └── Header.tsx
 ```
 
+## 🛡️ Smart Ignoring
+
+By default, the tool **automatically respects your `.gitignore` file**.
+It also filters out common clutter like `.git` and `.DS_Store` to ensure clean, AI-ready output.
+
 ## ⚙️ Options
 
 | Flag | Description | Context |
 | :--- | :--- | :--- |
 | `[path]` | (Positional) Directory or File to scan. Defaults to current dir. | Both |
-| `-i`, `--ignore` | Regex pattern to ignore files/folders. | Directory |
+| `-i`, `--ignore` | Override default ignore patterns with a custom regex. | Directory |
 | `-f`, `--only-folder` | Output only directories, hiding files. | Directory |
 | `-e`, `--export` | Save the output to a text file. | Both |
 | `-d`, `--directory` | (Alternative) Specify path via flag. | Both |

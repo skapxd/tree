@@ -2,6 +2,7 @@
 export * from './parser';
 export * from './drawer';
 export * from './utils';
+export * from './gitignore';
 
 // Re-export main functionality for programmatic use
 import path from 'path';
@@ -11,7 +12,7 @@ import { parseIgnoreOption } from './utils';
 
 export type TreeOptions = {
   directory: string;
-  ignore?: string;
+  ignore?: string | RegExp;
   onlyFolder?: boolean;
 };
 
@@ -19,7 +20,14 @@ export type TreeOptions = {
  * Generates an ASCII tree string for the given directory.
  */
 export function tree(options: TreeOptions): string | null {
-  const ignoreRegex = parseIgnoreOption(options.ignore);
+  let ignoreRegex: RegExp | null = null;
+
+  if (options.ignore instanceof RegExp) {
+    ignoreRegex = options.ignore;
+  } else {
+    ignoreRegex = parseIgnoreOption(options.ignore);
+  }
+
   const targetPath = path.resolve(options.directory);
 
   const structure = dirToJson(targetPath, ignoreRegex, options.onlyFolder);

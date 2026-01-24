@@ -3,7 +3,7 @@
 import { program } from 'commander';
 import fs from 'fs';
 import path from 'path';
-import { tree } from './fs-tree';
+import { tree, getGitIgnoreRegex } from './fs-tree';
 import { getParser, showSingleFileOutline, readFile } from './file-tree';
 
 // We need to read package.json version. 
@@ -19,12 +19,14 @@ try {
 }
 
 program
+  .name('tree')
+  .description('Powerful project structure visualizer: generates directory trees or file outlines.')
   .version(version)
-  .argument('[directory]', 'Directory to generate structure tree')
-  .option('-d, --directory <dir>', 'Specify a directory (alternative to positional argument)')
-  .option('-i, --ignore [ig]', 'You can ignore specific directory name')
-  .option('-e, --export [epath]', 'export into file')
-  .option('-f, --only-folder', 'output folder only')
+  .argument('[path]', 'Directory or File path to analyze')
+  .option('-d, --directory <dir>', 'Specify a path (alternative to positional argument)')
+  .option('-i, --ignore [ig]', 'Regex pattern to ignore (only for directories)')
+  .option('-e, --export [epath]', 'Export result to a file')
+  .option('-f, --only-folder', 'Output folders only (only for directories)')
   .action((dirArg, options) => {
     const targetPath = dirArg || options.directory || process.cwd();
 
@@ -43,9 +45,18 @@ program
     }
 
     // Directory Mode
+    let ignore = options.ignore;
+    if (!ignore) {
+        // Try to load .gitignore if no ignore option is provided
+        const gitIgnoreRegex = getGitIgnoreRegex(targetPath);
+        if (gitIgnoreRegex) {
+            ignore = gitIgnoreRegex;
+        }
+    }
+
     const output = tree({
       directory: targetPath,
-      ignore: options.ignore,
+      ignore: ignore,
       onlyFolder: options.onlyFolder,
     });
 
