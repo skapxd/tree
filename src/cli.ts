@@ -45,18 +45,19 @@ program
     }
 
     // Directory Mode
-    let ignore = options.ignore;
-    if (!ignore) {
-        // Try to load .gitignore if no ignore option is provided
-        const gitIgnoreRegex = getGitIgnoreRegex(targetPath);
-        if (gitIgnoreRegex) {
-            ignore = gitIgnoreRegex;
-        }
+    // Construct base ignore regex with defaults and user input
+    const defaultIgnores = ['^\\.git$', '^\\.DS_Store$'];
+    const ignorePatterns = [...defaultIgnores];
+    
+    if (options.ignore) {
+        ignorePatterns.push(options.ignore);
     }
+    
+    const ignoreRegex = new RegExp(ignorePatterns.join('|'));
 
     const output = tree({
       directory: targetPath,
-      ignore: ignore,
+      ignore: ignoreRegex,
       onlyFolder: options.onlyFolder,
     });
 

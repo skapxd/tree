@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { sortDir } from './utils';
+import { getGitIgnoreRegex } from './gitignore';
 
 export type TreeStructure = { [key: string]: (string | TreeStructure)[] } | string;
 
@@ -23,11 +24,23 @@ export function dirToJson(
   }
 
   if (stats.isDirectory()) {
+    // Check for local .gitignore and merge with parent regex
+    let effectiveRegex = ignoreRegex;
+    const localGitIgnore = getGitIgnoreRegex(dirPath, false); // Don't include defaults again
+    
+    if (localGitIgnore) {
+        if (effectiveRegex) {
+            effectiveRegex = new RegExp(`${effectiveRegex.source}|${localGitIgnore.source}`);
+        } else {
+            effectiveRegex = localGitIgnore;
+        }
+    }
+
     let dir = fs.readdirSync(dirPath);
 
-    if (ignoreRegex) {
+    if (effectiveRegex) {
       dir = dir.filter((val) => {
-        return !ignoreRegex.test(val);
+        return !effectiveRegex!.test(val);
       });
     }
 
@@ -43,7 +56,7 @@ export function dirToJson(
         }
       })
       .map((child) => {
-        return dirToJson(path.join(dirPath, child), ignoreRegex, onlyFolder);
+        return dirToJson(path.join(dirPath, child), effectiveRegex, onlyFolder);
       })
       .filter((c): c is TreeStructure => c !== null); // Filter out nulls
 
