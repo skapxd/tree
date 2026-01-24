@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Card from '../components/Card.astro';
+---
+
+<Layout title="Welcome">
+  <!-- Standard HTML (Should be hidden but keep nesting level) -->
+  <div class="wrapper">
+      <li class="link-card">
+          <!-- Nested Component -->
+          <Card title="Nested Card" />
+      </li>
+  </div>
+  
+  <!-- Custom Element (Should be shown) -->
+  <my-widget id="main-widget">
+      <span>Content</span>
+  </my-widget>
+</Layout>

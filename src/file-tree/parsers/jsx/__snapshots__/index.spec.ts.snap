@@ -1,0 +1,46 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`JSX Parser > should parse basic JSX file 1`] = `
+[
+  {
+    "endLine": 1,
+    "fullHeading": "import React from 'react';",
+    "kind": "import",
+    "level": 1,
+    "startLine": 1,
+    "title": "react",
+  },
+  {
+    "endLine": 5,
+    "fullHeading": "export const Button = ({ label }) => {",
+    "kind": "func export",
+    "level": 1,
+    "startLine": 3,
+    "title": "Button",
+  },
+  {
+    "endLine": 11,
+    "fullHeading": "export class Card extends React.Component {",
+    "kind": "class export",
+    "level": 1,
+    "startLine": 7,
+    "title": "Card",
+  },
+  {
+    "endLine": 10,
+    "fullHeading": "  render() {",
+    "kind": "meth",
+    "level": 2,
+    "startLine": 8,
+    "title": "render",
+  },
+  {
+    "endLine": 15,
+    "fullHeading": "function helper() {",
+    "kind": "func",
+    "level": 1,
+    "startLine": 13,
+    "title": "helper",
+  },
+]
+`;

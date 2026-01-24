@@ -3,7 +3,8 @@
 import { program } from 'commander';
 import fs from 'fs';
 import path from 'path';
-import { tree } from './index';
+import { tree } from './fs-tree';
+import { getParser, showSingleFileOutline, readFile } from './file-tree';
 
 // We need to read package.json version. 
 // In TS/ESM, import assertions are the way, or reading file sync.
@@ -25,16 +26,31 @@ program
   .option('-e, --export [epath]', 'export into file')
   .option('-f, --only-folder', 'output folder only')
   .action((dirArg, options) => {
-    const targetDir = dirArg || options.directory || process.cwd();
+    const targetPath = dirArg || options.directory || process.cwd();
 
+    // Check if it is a file -> Outline Mode
+    try {
+        const stats = fs.statSync(targetPath);
+        if (stats.isFile()) {
+            const content = readFile(targetPath);
+            const parser = getParser(targetPath);
+            const { lines, sections } = parser.parse(content);
+            showSingleFileOutline(targetPath, lines, sections);
+            return;
+        }
+    } catch (e) {
+        // If file doesn't exist, let 'tree' handle the error or fail
+    }
+
+    // Directory Mode
     const output = tree({
-      directory: targetDir,
+      directory: targetPath,
       ignore: options.ignore,
       onlyFolder: options.onlyFolder,
     });
 
     if (!output) {
-      console.error(`Error: Could not read directory "${targetDir}"`);
+      console.error(`Error: Could not read directory "${targetPath}"`);
       process.exit(1);
     }
 

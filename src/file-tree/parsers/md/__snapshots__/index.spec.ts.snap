@@ -1,0 +1,75 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Markdown Parser (Snapshots) > should parse basic.md correctly 1`] = `
+[
+  {
+    "endLine": 7,
+    "fullHeading": "# Title",
+    "kind": "#",
+    "level": 1,
+    "startLine": 1,
+    "title": "Title",
+  },
+  {
+    "endLine": 4,
+    "fullHeading": "## Subtitle",
+    "kind": "##",
+    "level": 2,
+    "startLine": 2,
+    "title": "Subtitle",
+  },
+  {
+    "endLine": 7,
+    "fullHeading": "## Another Subtitle",
+    "kind": "##",
+    "level": 2,
+    "startLine": 5,
+    "title": "Another Subtitle",
+  },
+]
+`;
+
+exports[`Markdown Parser (Snapshots) > should parse nested.md correctly 1`] = `
+[
+  {
+    "endLine": 8,
+    "fullHeading": "# Level 1",
+    "kind": "#",
+    "level": 1,
+    "startLine": 1,
+    "title": "Level 1",
+  },
+  {
+    "endLine": 5,
+    "fullHeading": "## Level 2",
+    "kind": "##",
+    "level": 2,
+    "startLine": 2,
+    "title": "Level 2",
+  },
+  {
+    "endLine": 5,
+    "fullHeading": "### Level 3",
+    "kind": "###",
+    "level": 3,
+    "startLine": 3,
+    "title": "Level 3",
+  },
+  {
+    "endLine": 8,
+    "fullHeading": "## Level 2 again",
+    "kind": "##",
+    "level": 2,
+    "startLine": 6,
+    "title": "Level 2 again",
+  },
+  {
+    "endLine": 11,
+    "fullHeading": "# New Level 1",
+    "kind": "#",
+    "level": 1,
+    "startLine": 9,
+    "title": "New Level 1",
+  },
+]
+`;

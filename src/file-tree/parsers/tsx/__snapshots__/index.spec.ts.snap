@@ -1,0 +1,192 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TSX Parser (Snapshots) > should parse api.ts correctly 1`] = `
+[
+  {
+    "endLine": 1,
+    "fullHeading": "export const API_URL = 'https://api.example.com';",
+    "kind": "var export",
+    "level": 1,
+    "startLine": 1,
+    "title": "API_URL",
+  },
+  {
+    "endLine": 6,
+    "fullHeading": "export type User = {",
+    "kind": "type export",
+    "level": 1,
+    "startLine": 3,
+    "title": "User",
+  },
+  {
+    "endLine": 4,
+    "fullHeading": "  id: string;",
+    "kind": "prop",
+    "level": 2,
+    "startLine": 4,
+    "title": "id",
+  },
+  {
+    "endLine": 5,
+    "fullHeading": "  name: string;",
+    "kind": "prop",
+    "level": 2,
+    "startLine": 5,
+    "title": "name",
+  },
+  {
+    "endLine": 14,
+    "fullHeading": "export class UserService {",
+    "kind": "class export",
+    "level": 1,
+    "startLine": 8,
+    "title": "UserService",
+  },
+  {
+    "endLine": 9,
+    "fullHeading": "  private cache = new Map();",
+    "kind": "prop",
+    "level": 2,
+    "startLine": 9,
+    "title": "cache",
+  },
+  {
+    "endLine": 13,
+    "fullHeading": "  async getUser(id: string): Promise<User> {",
+    "kind": "meth",
+    "level": 2,
+    "startLine": 11,
+    "title": "getUser",
+  },
+  {
+    "endLine": 12,
+    "fullHeading": "    return { id, name: 'Test' };",
+    "kind": "prop",
+    "level": 3,
+    "startLine": 12,
+    "title": "name",
+  },
+  {
+    "endLine": 18,
+    "fullHeading": "function helper() {",
+    "kind": "func",
+    "level": 1,
+    "startLine": 16,
+    "title": "helper",
+  },
+]
+`;
+
+exports[`TSX Parser (Snapshots) > should parse callback.ts correctly 1`] = `
+[
+  {
+    "endLine": 12,
+    "fullHeading": "export function main() {",
+    "kind": "func export",
+    "level": 1,
+    "startLine": 1,
+    "title": "main",
+  },
+  {
+    "endLine": 2,
+    "fullHeading": "  const data = [1, 2, 3];",
+    "kind": "var",
+    "level": 2,
+    "startLine": 2,
+    "title": "data",
+  },
+  {
+    "endLine": 7,
+    "fullHeading": "  data.map((item) => {",
+    "kind": "call",
+    "level": 2,
+    "startLine": 4,
+    "title": "map() callback",
+  },
+  {
+    "endLine": 5,
+    "fullHeading": "    const doubled = item * 2;",
+    "kind": "var",
+    "level": 4,
+    "startLine": 5,
+    "title": "doubled",
+  },
+  {
+    "endLine": 11,
+    "fullHeading": "  process.action((args) => {",
+    "kind": "call",
+    "level": 2,
+    "startLine": 9,
+    "title": "action() callback",
+  },
+  {
+    "endLine": 10,
+    "fullHeading": "    const local = 'value';",
+    "kind": "var",
+    "level": 4,
+    "startLine": 10,
+    "title": "local",
+  },
+]
+`;
+
+exports[`TSX Parser (Snapshots) > should parse component.tsx correctly 1`] = `
+[
+  {
+    "endLine": 1,
+    "fullHeading": "import React from 'react';",
+    "kind": "import",
+    "level": 1,
+    "startLine": 1,
+    "title": "react",
+  },
+  {
+    "endLine": 5,
+    "fullHeading": "export interface Props {",
+    "kind": "intf export",
+    "level": 1,
+    "startLine": 3,
+    "title": "Props",
+  },
+  {
+    "endLine": 4,
+    "fullHeading": "  title: string;",
+    "kind": "prop",
+    "level": 2,
+    "startLine": 4,
+    "title": "title",
+  },
+  {
+    "endLine": 9,
+    "fullHeading": "export const Header: React.FC<Props> = ({ title }) => {",
+    "kind": "func export",
+    "level": 1,
+    "startLine": 7,
+    "title": "Header",
+  },
+  {
+    "endLine": 14,
+    "fullHeading": "export default function App() {",
+    "kind": "func export",
+    "level": 1,
+    "startLine": 11,
+    "title": "App",
+  },
+  {
+    "endLine": 12,
+    "fullHeading": "  const [count, setCount] = React.useState(0);",
+    "kind": "var",
+    "level": 2,
+    "startLine": 12,
+    "title": "count",
+  },
+  {
+    "endLine": 12,
+    "fullHeading": "  const [count, setCount] = React.useState(0);",
+    "kind": "var",
+    "level": 2,
+    "startLine": 12,
+    "title": "setCount",
+  },
+]
+`;

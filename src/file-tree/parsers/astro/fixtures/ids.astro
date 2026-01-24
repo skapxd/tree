@@ -1,0 +1,21 @@
+---
+---
+
+<Layout>
+  <!-- Should be ignored -->
+  <div>
+      <!-- Should be shown because of ID -->
+      <section id="hero-section">
+          <h1>Title</h1>
+      </section>
+      
+      <!-- Should be shown because Component -->
+      <Button />
+      
+      <!-- Should be shown because Custom Element -->
+      <my-counter />
+      
+      <!-- Should be ignored (class only) -->
+      <div class="container"></div>
+  </div>
+</Layout>

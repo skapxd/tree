@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Card from '../components/Card.astro';
+
+interface Props {
+	title: string;
+	body: string;
+	href: string;
+}
+
+const { href, title, body } = Astro.props;
+const visible = true;
+
+function format(str: string) {
+    return str.toUpperCase();
+}
+---
+
+<Layout title="Welcome">
+  <li class="link-card">
+      <a href={href}>
+          <h2>
+              {title}
+              <span>&rarr;</span>
+          </h2>
+          <p>
+              {body}
+          </p>
+      </a>
+  </li>
+  
+  <Card title="Another Card" />
+  
+  <div class="regular-html">
+      Ignored
+  </div>
+</Layout>
