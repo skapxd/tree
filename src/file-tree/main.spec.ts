@@ -68,10 +68,10 @@ describe('file-tree module', () => {
       ];
       const tree = buildTreeFromSections(sections);
       expect(tree).toHaveLength(2);
-      expect(tree[0].children).toHaveLength(1);
-      expect(tree[0].section.title).toBe('H1');
-      expect(tree[0].children[0].section.title).toBe('H2');
-      expect(tree[1].section.title).toBe('H1-2');
+      expect(tree[0]!.children).toHaveLength(1);
+      expect(tree[0]!.section.title).toBe('H1');
+      expect(tree[0]!.children[0]!.section.title).toBe('H2');
+      expect(tree[1]!.section.title).toBe('H1-2');
     });
   });
 

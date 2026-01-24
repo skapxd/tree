@@ -13,7 +13,7 @@ export const markdownParser: Parser = {
         sections.push({
           level: match[1]!.length,
           title: match[2]!,
-          kind: match[1],
+          kind: match[1]!,
           fullHeading: line!,
           startLine: i + 1,
           endLine: lines.length, // temporary

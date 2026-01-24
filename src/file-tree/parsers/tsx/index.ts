@@ -101,7 +101,7 @@ export const tsxParser: Parser = {
             title = node.name.text;
             kind = 'prop';
             // Check if initializer is an arrow function or function expression to change kind?
-            if (node.initializer && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) {
+            if (ts.isPropertyDeclaration(node) && node.initializer && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) {
                 kind = 'meth';
             }
             nextLevel = level + 1;

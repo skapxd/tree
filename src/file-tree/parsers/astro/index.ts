@@ -13,7 +13,7 @@ export const astroParser: Parser = {
 
     // 1. Script (Frontmatter)
     if (match) {
-      const frontmatterContent = match[1];
+      const frontmatterContent = match[1] || '';
       const offset = 1;
       const result = tsxParser.parse(frontmatterContent);
       const shiftedSections = result.sections.map(section => ({
@@ -38,8 +38,8 @@ export const astroParser: Parser = {
     let tagMatch;
     while ((tagMatch = tagRegex.exec(templateContent)) !== null) {
         const fullTag = tagMatch[0];
-        const rawName = tagMatch[1];
-        const attrs = tagMatch[2];
+        const rawName = tagMatch[1] || '';
+        const attrs = tagMatch[2] || '';
         // Detectar self-closing explícito (/) o implícito (void elements)
         const isSelfClosing = tagMatch[3] === '/' || voidElements.has(rawName.toLowerCase().replace('/', ''));
 
