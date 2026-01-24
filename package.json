@@ -1,6 +1,6 @@
 {
   "name": "@skapxd/tree",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A directory structure tree generator for CLI",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
