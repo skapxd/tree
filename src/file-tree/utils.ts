@@ -6,7 +6,7 @@ import { type Section } from './types';
  */
 export function readFile(filePath: string): string {
   try {
-    return fs.readFileSync(filePath, 'utf-8');
+    return fs.readFileSync(filePath, 'utf-8').replace(/\r\n/g, '\n');
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       throw new Error(`File not found: ${filePath}`);

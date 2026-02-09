@@ -56,7 +56,7 @@ function buildSemanticTree(currentPath: string): VisualNode | null {
                  return { label: name }; // Just file name
             }
 
-            const content = fs.readFileSync(currentPath, 'utf-8');
+            const content = fs.readFileSync(currentPath, 'utf-8').replace(/\r\n/g, '\n');
             const parser = getParser(currentPath);
             const { sections } = parser.parse(content);
 
