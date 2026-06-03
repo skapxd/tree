@@ -14,6 +14,7 @@ export type TreeOptions = {
   directory: string;
   ignore?: string | RegExp;
   onlyFolder?: boolean;
+  color?: boolean;
 };
 
 /**
@@ -36,5 +37,5 @@ export function tree(options: TreeOptions): string | null {
     return null;
   }
 
-  return generateTreeString(structure);
+  return generateTreeString(structure, { color: Boolean(options.color) });
 }

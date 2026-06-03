@@ -1,5 +1,113 @@
 import fs from 'fs';
 import path from 'path';
+import ignore from 'ignore';
+
+type IgnoreMatcher = ReturnType<typeof ignore>;
+
+export interface IgnoreState {
+  rootDir: string;
+  customIgnore: RegExp | null;
+  scopes: Array<{
+    baseDir: string;
+    matcher: IgnoreMatcher;
+  }>;
+}
+
+const DEFAULT_IGNORE_PATTERNS = ['.git', '.DS_Store'];
+
+function toPosixPath(filePath: string): string {
+  return filePath.split(path.sep).join('/');
+}
+
+function isInsideScope(scopeDir: string, filePath: string): string | null {
+  const relativePath = path.relative(scopeDir, filePath);
+  if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    return null;
+  }
+
+  return toPosixPath(relativePath);
+}
+
+function readGitIgnore(dirPath: string): string | null {
+  const gitIgnorePath = path.join(dirPath, '.gitignore');
+  if (!fs.existsSync(gitIgnorePath)) return null;
+
+  try {
+    return fs.readFileSync(gitIgnorePath, 'utf-8');
+  } catch {
+    return null;
+  }
+}
+
+function testRegex(regex: RegExp, value: string): boolean {
+  regex.lastIndex = 0;
+  return regex.test(value);
+}
+
+export function createIgnoreState(rootDir: string, customIgnore: RegExp | null): IgnoreState {
+  return {
+    rootDir,
+    customIgnore,
+    scopes: [
+      {
+        baseDir: rootDir,
+        matcher: ignore().add(DEFAULT_IGNORE_PATTERNS),
+      },
+    ],
+  };
+}
+
+export function withGitIgnoreForDir(state: IgnoreState, dirPath: string): IgnoreState {
+  const content = readGitIgnore(dirPath);
+  if (!content) return state;
+
+  let matcher: IgnoreMatcher;
+  try {
+    matcher = ignore().add(content);
+  } catch {
+    return state;
+  }
+
+  return {
+    ...state,
+    scopes: [
+      ...state.scopes,
+      {
+        baseDir: dirPath,
+        matcher,
+      },
+    ],
+  };
+}
+
+export function isIgnoredPath(
+  state: IgnoreState,
+  absolutePath: string,
+  name: string,
+  isDirectory: boolean
+): boolean {
+  const rootRelativePath = isInsideScope(state.rootDir, absolutePath);
+
+  if (state.customIgnore) {
+    if (testRegex(state.customIgnore, name)) return true;
+    if (rootRelativePath && testRegex(state.customIgnore, rootRelativePath)) return true;
+  }
+
+  for (const scope of state.scopes) {
+    const relativePath = isInsideScope(scope.baseDir, absolutePath);
+    if (!relativePath) continue;
+
+    if (isDirectory && scope.matcher.ignores(`${relativePath}/`)) {
+      return true;
+    }
+
+    if (scope.matcher.ignores(relativePath)) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 /**
  * Reads .gitignore from the target directory and creates a RegExp for filtering.
@@ -44,8 +152,8 @@ export function getGitIgnoreRegex(dirPath: string, includeDefaults = true): RegE
 
   // Always add .git and .DS_Store if defaults are requested
   if (includeDefaults) {
-    regexParts.push('^\.git$');
-    regexParts.push('^\.DS_Store$');
+    regexParts.push('^\\.git$');
+    regexParts.push('^\\.DS_Store$');
   }
 
   if (regexParts.length === 0) return null;

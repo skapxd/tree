@@ -8,6 +8,7 @@
 
 A modern, TypeScript-based CLI tool that intelligently adapts to your input.
 - **Directories:** Generates a clean, ASCII tree diagram of folders and files.
+- **Line counts:** Shows the number of lines for each file in directory mode, dimmed in color terminals.
 - **Files:** Generates a structural outline (symbols, functions, classes) in a clean tabular format.
 
 Optimized for **Documentation** and **AI Context**, providing a token-efficient overview of your codebase.
@@ -62,15 +63,15 @@ This tool is specifically designed to help AI Agents (like ChatGPT, Claude, Gemi
 ## 🎨 Directory Example Output
 
 ```text
-src
-├── index.ts
-├── cli.ts
-├── utils
-│   ├── parser.ts
-│   └── drawer.ts
-└── components
-    ├── Button.tsx
-    └── Header.tsx
+src/
+├── index.ts (2 lines)
+├── cli.ts (81 lines)
+├── utils/
+│   ├── parser.ts (115 lines)
+│   └── drawer.ts (70 lines)
+└── components/
+    ├── Button.tsx (42 lines)
+    └── Header.tsx (38 lines)
 ```
 
 ## 🛡️ Smart Ignoring
