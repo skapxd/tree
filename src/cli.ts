@@ -3,7 +3,7 @@
 import { program } from 'commander';
 import fs from 'fs';
 import path from 'path';
-import { tree, getGitIgnoreRegex } from './fs-tree';
+import { tree } from './fs-tree';
 import { getParser, showSingleFileOutline, readFile } from './file-tree';
 
 // We need to read package.json version. 
@@ -16,6 +16,13 @@ try {
     version = pkg.version;
 } catch {
     // ignore
+}
+
+function shouldColorOutput(): boolean {
+  if (process.env.NO_COLOR) return false;
+  if (process.env.FORCE_COLOR && process.env.FORCE_COLOR !== '0') return true;
+
+  return Boolean(process.stdout.isTTY);
 }
 
 program
@@ -59,6 +66,7 @@ program
       directory: targetPath,
       ignore: ignoreRegex,
       onlyFolder: options.onlyFolder,
+      color: shouldColorOutput() && !options.export,
     });
 
     if (!output) {
@@ -71,7 +79,14 @@ program
 
     // Export to file if requested
     if (options.export) {
-      fs.writeFile(options.export, output, (err) => {
+      const exportOutput = tree({
+        directory: targetPath,
+        ignore: ignoreRegex,
+        onlyFolder: options.onlyFolder,
+        color: false,
+      });
+
+      fs.writeFile(options.export, exportOutput ?? output, (err) => {
         if (err) throw err;
         console.log('\n\nThe result has been saved into ' + options.export);
       });

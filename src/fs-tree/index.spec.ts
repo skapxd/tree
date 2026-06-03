@@ -72,9 +72,9 @@ describe('fs-tree module', () => {
       expect(structure).toHaveProperty(rootKey);
       
       const children = (structure as any)[rootKey];
-      expect(children).toContain('a.txt');
-      expect(children).toContain('d.txt');
-      expect(children).toContainEqual({ b: ['c.txt'] });
+      expect(children).toContain('a.txt (1 line)');
+      expect(children).toContain('d.txt (1 line)');
+      expect(children).toContainEqual({ b: ['c.txt (1 line)'] });
     });
 
     it('should respect ignore option', () => {
@@ -83,8 +83,8 @@ describe('fs-tree module', () => {
       const rootKey = path.basename(tempDir);
       const children = (structure as any)[rootKey];
       
-      expect(children).not.toContainEqual({ b: ['c.txt'] });
-      expect(children).toContain('a.txt');
+      expect(children).not.toContainEqual({ b: ['c.txt (1 line)'] });
+      expect(children).toContain('a.txt (1 line)');
     });
 
     it('should generate a correct tree string', () => {
@@ -96,9 +96,33 @@ describe('fs-tree module', () => {
       
       expect(treeString).toContain(rootName);
       expect(treeString).toContain('├── a.txt');
-      expect(treeString).toContain('├── d.txt');
-      expect(treeString).toContain('└── b');
+      expect(treeString).toContain('(1 line)');
+      expect(treeString).toContain('└── b/');
       expect(treeString).toContain('    └── c.txt');
+    });
+
+    it('should include line counts for empty, trailing-newline, and non-trailing-newline files', () => {
+      fs.writeFileSync(path.join(tempDir, 'empty.txt'), '');
+      fs.writeFileSync(path.join(tempDir, 'two-lines.txt'), 'one\ntwo');
+      fs.writeFileSync(path.join(tempDir, 'trailing-newline.txt'), 'one\ntwo\n');
+
+      const result = tree({ directory: tempDir });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).toContain('empty.txt');
+      expect(result).toContain('(0 lines)');
+      expect(result).toContain('two-lines.txt');
+      expect(result).toContain('(2 lines)');
+      expect(result).toContain('trailing-newline.txt');
+    });
+
+    it('should dim line count metadata when color output is enabled', () => {
+      fs.writeFileSync(path.join(tempDir, 'short.ts'), 'one\ntwo');
+
+      const result = tree({ directory: tempDir, color: true });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).toContain('short.ts \x1b[2m(2 lines)\x1b[0m');
     });
 
     it('should handle onlyFolder option', () => {
@@ -132,7 +156,7 @@ describe('fs-tree module', () => {
       expect(result).toBeTypeOf('string');
       expect(result).toContain('a.txt');
       expect(result).toContain('d.txt');
-      expect(result).toContain('b');
+      expect(result).toContain('b/');
     });
 
     it('should return null for a non-existent directory', () => {
@@ -143,23 +167,65 @@ describe('fs-tree module', () => {
     it('should filter with RegExp ignore option', () => {
       const result = tree({ directory: tempDir, ignore: /b/ });
       expect(result).toBeTypeOf('string');
-      expect(result).not.toContain('b');
+      expect(result).not.toContain('b/');
       expect(result).toContain('a.txt');
     });
 
     it('should filter with string ignore option', () => {
       const result = tree({ directory: tempDir, ignore: 'b' });
       expect(result).toBeTypeOf('string');
-      expect(result).not.toContain('b');
+      expect(result).not.toContain('b/');
       expect(result).toContain('a.txt');
     });
 
     it('should show only folders with onlyFolder option', () => {
       const result = tree({ directory: tempDir, onlyFolder: true });
       expect(result).toBeTypeOf('string');
-      expect(result).toContain('b');
+      expect(result).toContain('b/');
       expect(result).not.toContain('a.txt');
       expect(result).not.toContain('d.txt');
+    });
+
+    it('should respect .gitignore negation patterns', () => {
+      fs.writeFileSync(path.join(tempDir, '.gitignore'), '*.log\n!important.log\n');
+      fs.writeFileSync(path.join(tempDir, 'ignored.log'), 'ignore me');
+      fs.writeFileSync(path.join(tempDir, 'important.log'), 'keep me');
+
+      const result = tree({ directory: tempDir });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).not.toContain('ignored.log');
+      expect(result).toContain('important.log');
+    });
+
+    it('should respect path-aware .gitignore patterns', () => {
+      fs.writeFileSync(path.join(tempDir, '.gitignore'), 'src/generated/**\n');
+      fs.mkdirSync(path.join(tempDir, 'src'));
+      fs.mkdirSync(path.join(tempDir, 'src', 'generated'));
+      fs.mkdirSync(path.join(tempDir, 'generated'));
+      fs.writeFileSync(path.join(tempDir, 'src', 'generated', 'ignored.ts'), 'ignore me');
+      fs.writeFileSync(path.join(tempDir, 'generated', 'visible.ts'), 'keep me');
+
+      const result = tree({ directory: tempDir });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).not.toContain('ignored.ts');
+      expect(result).toContain('visible.ts');
+    });
+
+    it('should scope nested .gitignore files to their own directory', () => {
+      fs.mkdirSync(path.join(tempDir, 'src'));
+      fs.writeFileSync(path.join(tempDir, 'src', '.gitignore'), '*.tmp\n!keep.tmp\n');
+      fs.writeFileSync(path.join(tempDir, 'root.tmp'), 'keep me');
+      fs.writeFileSync(path.join(tempDir, 'src', 'ignored.tmp'), 'ignore me');
+      fs.writeFileSync(path.join(tempDir, 'src', 'keep.tmp'), 'keep me');
+
+      const result = tree({ directory: tempDir });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).toContain('root.tmp');
+      expect(result).not.toContain('ignored.tmp');
+      expect(result).toContain('keep.tmp');
     });
   });
 
