@@ -1,4 +1,4 @@
-export interface Section {
+export type Section = {
   level: number;
   title: string;
   kind?: string; // e.g., 'function', 'class', 'import', 'heading'
@@ -7,7 +7,7 @@ export interface Section {
   endLine: number;
 }
 
-export interface OutlineResult {
+export type OutlineResult = {
   lines: string[];
   sections: Section[];
 }
@@ -15,6 +15,6 @@ export interface OutlineResult {
 /**
  * Interface that every parser must implement.
  */
-export interface Parser {
+export type Parser = {
   parse(content: string): OutlineResult;
 }

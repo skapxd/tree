@@ -4,41 +4,86 @@
 [![npm version](https://badge.fury.io/js/@skapxd%2Ftree.svg)](https://badge.fury.io/js/@skapxd%2Ftree)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Visualize your project structure: Directories & File Outlines.**
+Project structure and relationship visualizer for codebases, docs, and AI-agent context.
 
-A modern, TypeScript-based CLI tool that intelligently adapts to your input.
-- **Directories:** Generates a clean, ASCII tree diagram of folders and files.
-- **Line counts:** Shows the number of lines for each file in directory mode, dimmed in color terminals.
-- **Files:** Generates a structural outline (symbols, functions, classes) in a clean tabular format.
+`@skapxd/tree` gives you three useful views:
 
-Optimized for **Documentation** and **AI Context**, providing a token-efficient overview of your codebase.
+- Directory tree with line counts.
+- File outline for supported source and Markdown files.
+- Related-file graph for local imports and local Markdown links.
 
-## 🚀 Quick Start (No Installation)
+It is optimized for quick human inspection and for AI agents that need bounded, high-signal context before editing.
 
-The fastest way to use it is with `npx`. It works instantly in any directory.
+## Quick Start
+
+Run without installing:
 
 ```bash
-# 📂 Directory Mode: View folder structure
+# Directory tree
 npx @skapxd/tree
-
-# 📂 Directory Mode: View specific folder
 npx @skapxd/tree ./src
 
-# 📄 File Mode: View file structure (Outline)
+# File outline
 npx @skapxd/tree src/index.ts
+npx @skapxd/tree docs/README.md
+
+# Related files by imports or local Markdown links
+npx @skapxd/tree src/routes/page.tsx -r
+npx @skapxd/tree docs/index.md -r
 ```
 
-## 📄 File Outline Mode
+Install globally if you use it often:
 
-Point `tree` to a supported file to see a high-level overview of its contents without reading the whole code.
+```bash
+npm install -g @skapxd/tree
+tree ./src
+```
 
-**Supported Formats:**
-- **TypeScript:** `.ts`, `.tsx`
-- **JavaScript:** `.js`, `.jsx`, `.mjs`, `.cjs`
-- **Markdown:** `.md`
-- **Astro:** `.astro`
+## Directory Tree Mode
 
-**Example Output:**
+Point the command to a directory to print a compact tree.
+
+```bash
+npx @skapxd/tree ./src
+npx @skapxd/tree ./src --only-folder
+npx @skapxd/tree ./src --ignore "node_modules|dist|coverage"
+```
+
+Example:
+
+```text
+src/
+├── index.ts (2 lines)
+├── cli.ts (120 lines)
+└── file-tree/
+    ├── index.ts (45 lines)
+    └── parsers/
+        └── tsx/
+            └── index.ts (241 lines)
+```
+
+The directory scan respects `.gitignore` and filters common noise such as `.git` and `.DS_Store`.
+
+## File Outline Mode
+
+Point the command to a supported file to print a structural outline without loading the full implementation.
+
+```bash
+npx @skapxd/tree src/index.ts
+npx @skapxd/tree src/components/Button.tsx
+npx @skapxd/tree src/pages/index.astro
+npx @skapxd/tree docs/README.md
+```
+
+Supported outline files:
+
+- TypeScript: `.ts`, `.tsx`
+- JavaScript: `.js`, `.jsx`, `.mjs`, `.cjs`
+- Markdown: `.md`, `.markdown`
+- Astro: `.astro`
+
+Example:
+
 ```text
        Lines │ Type       │ Symbol
 ─────────────┼────────────┼────────────────────────────────────────
@@ -46,84 +91,209 @@ Point `tree` to a supported file to see a high-level overview of its contents wi
          2-2 │ import     │ ├── path
         10-15│ interface  │ ├── User
         18-25│ func       │ ├── getUser
-        19-19│ var        │ │   └── id
         30-45│ class      │ └── UserService
-        32-35│ meth       │     └── fetch
 ```
 
-## 🤖 Optimized for AI Agents & LLMs
+## Related Files Mode
 
-This tool is specifically designed to help AI Agents (like ChatGPT, Claude, Gemini, or GitHub Copilot) understand your project architecture **without consuming massive context windows**.
+Use `-r` or `--related` on a supported file to build a local relationship graph.
 
-**Why is this better for AI?**
-*   **Context Focus:** Provide only the relevant structural information (filenames or function signatures), avoiding implementation noise.
-*   **Token Efficient:** Uses minimal characters to convey maximum structural information.
-*   **High Contrast:** Distinct separation between structural elements helps LLMs parse the hierarchy accurately.
+```bash
+npx @skapxd/tree src/routes/page.tsx -r
+npx @skapxd/tree docs/index.md -r
+```
 
-## 🎨 Directory Example Output
+This is the most useful mode before changing code or documentation because it separates two questions:
+
+- What does this target depend on?
+- What depends on this target and could break?
+
+### Code Relationships
+
+For code files, the labels are:
+
+- `imports`: local files imported by the target.
+- `imported by`: local files that import the target.
 
 ```text
-src/
-├── index.ts (2 lines)
-├── cli.ts (81 lines)
-├── utils/
-│   ├── parser.ts (115 lines)
-│   └── drawer.ts (70 lines)
-└── components/
-    ├── Button.tsx (42 lines)
-    └── Header.tsx (38 lines)
+Related files for src/lib/api.ts
+├── imports (2)
+│   └── src/lib/http.ts
+│       └── src/lib/logger.ts
+└── imported by (2)
+    ├── src/routes/page.tsx
+    └── src/components/UserCard.tsx
 ```
 
-## 🛡️ Smart Ignoring
+The resolver handles:
 
-By default, the tool **automatically respects your `.gitignore` file**.
-It also filters out common clutter like `.git` and `.DS_Store` to ensure clean, AI-ready output.
+- relative imports
+- extensionless imports
+- directory `index.*` imports
+- Astro frontmatter imports
+- CommonJS `require()`
+- dynamic `import()`
+- re-exports
+- `tsconfig.json` `baseUrl` and `paths`
 
-## ⚙️ Options
+External packages such as `react` are intentionally excluded.
+
+### Markdown Relationships
+
+For Markdown files, the labels switch to document language:
+
+- `links`: local Markdown files linked by the target document.
+- `linked by`: local Markdown files that link to the target document.
+
+```text
+Related files for docs/index.md - Documentation Index (24 lines)
+├── links (1)
+│   └── docs/guide.md (68 lines)
+│       ├── title: User Guide
+│       └── link source: docs/index.md:12 "Guide"
+└── linked by (1)
+    └── README.md (260 lines)
+        ├── title: @skapxd/tree
+        └── link source: README.md:253 "Documentation"
+```
+
+The resolver handles:
+
+- inline links: `[Guide](./guide.md#setup)`
+- reference definitions: `[guide]: ./guide.md`
+- root-relative links: `[Guide](/docs/guide.md)`
+- backlinks through `linked by`
+
+It intentionally ignores:
+
+- external URLs
+- `mailto:` and other protocol links
+- pure anchors such as `#setup`
+- images such as `![Diagram](./diagram.md)`
+- links inside inline code and fenced code blocks
+
+Broken local Markdown links are shown as `unresolved local links`.
+
+Markdown tree nodes keep the file path and line count on the file row. The first available heading is rendered below the file as `title:` so it is not confused with the path:
+
+```text
+docs/agent-workflows.md (57 lines)
+└── title: AI-Agent Workflow
+```
+
+Markdown edges render the source link text or reference label below the file as `link source:`:
+
+```text
+docs/guide.md (68 lines)
+├── title: User Guide
+└── link source: docs/index.md:12 "Guide"
+
+docs/index.md (24 lines) -> ./missing.md
+└── link source: docs/index.md:18 "Missing"
+```
+
+### Related Mode Options
+
+```bash
+# Both outgoing and incoming relationships
+npx @skapxd/tree src/routes/page.tsx -r
+
+# Only outgoing relationships
+npx @skapxd/tree src/routes/page.tsx -r imports
+
+# Only incoming relationships
+npx @skapxd/tree src/lib/api.ts -r importers
+
+# Direct relationships only
+npx @skapxd/tree src/lib/api.ts -r both --depth 1
+
+# Compact direct/transitive summary
+npx @skapxd/tree src/lib/api.ts -r --summary
+
+# Explicit nested tree, same as default
+npx @skapxd/tree src/lib/api.ts -r --tree
+
+# Monorepo or subproject root
+npx @skapxd/tree apps/web/src/pages/index.astro -r --root apps/web
+```
+
+Supported related-file targets:
+
+- Code: `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs`, `.astro`
+- Markdown: `.md`, `.markdown`
+
+## AI-Agent Workflow
+
+For large repositories, start with the related-file graph instead of reading the whole tree.
+
+Recommended sequence:
+
+1. Run `npx @skapxd/tree <target-file> -r`.
+2. Read direct outgoing files first.
+3. Follow transitive branches only when they explain the behavior being changed.
+4. Read incoming files to understand risk.
+5. Use `--depth 1` or `--summary` if the graph is too large.
+6. Use normal text search after the graph exposes relevant names, contracts, or gaps.
+
+The graph is static. It can miss runtime-only wiring such as dependency injection, framework routing conventions, generated code, config-driven behavior, or unresolvable dynamic imports.
+
+## CLI Reference
+
+```text
+tree [options] [path]
+```
 
 | Flag | Description | Context |
 | :--- | :--- | :--- |
-| `[path]` | (Positional) Directory or File to scan. Defaults to current dir. | Both |
-| `-i`, `--ignore` | Override default ignore patterns with a custom regex. | Directory |
-| `-f`, `--only-folder` | Output only directories, hiding files. | Directory |
-| `-e`, `--export` | Save the output to a text file. | Both |
-| `-d`, `--directory` | (Alternative) Specify path via flag. | Both |
+| `[path]` | Directory or file to analyze. Defaults to current directory. | Both |
+| `-d`, `--directory <dir>` | Specify a path as an alternative to the positional argument. | Both |
+| `-i`, `--ignore [ig]` | Regex pattern to ignore. | Directory/Related |
+| `-e`, `--export [epath]` | Export result to a file. | Both |
+| `-f`, `--only-folder` | Output folders only. | Directory |
+| `-r`, `--related [mode]` | Show related files. Modes: `imports`, `importers`, `both`. | File |
+| `--root <dir>` | Project root for related-file scans. Defaults to current directory. | Related |
+| `--depth <depth>` | Max traversal depth for related-file scans. Use `all` for full graph. | Related |
+| `--summary` | Use the layered related-file summary. | Related |
+| `--tree` | Use the full nested related-file tree. This is the default for `-r`. | Related |
+| `-V`, `--version` | Print version. | Both |
+| `-h`, `--help` | Print help. | Both |
 
-## 📦 Installation (Optional)
+## Full Documentation
 
-If you use it frequently, you can install it globally:
+The root README is the npm-facing overview. The same information is also segmented in `docs/` for deeper reading and local relationship searches:
+
+- [Documentation index](docs/README.md)
+- [Directory tree mode](docs/directory-tree.md)
+- [File outline mode](docs/file-outline.md)
+- [Related files mode](docs/related-files.md)
+- [AI-agent workflow](docs/agent-workflows.md)
+- [CLI reference](docs/cli-reference.md)
+- [Development](docs/development.md)
+
+## Development
 
 ```bash
-npm install -g @skapxd/tree
-# or
-pnpm add -g @skapxd/tree
-```
-
-Then run it simply as:
-```bash
-tree
-# or
-npx @skapxd/tree
-```
-
-## 🛠️ Development
-
-This project uses **TypeScript**, **Tsup** for bundling, and **Vitest** for testing.
-
-```bash
-# Install dependencies
 yarn install
-
-# Run in development mode
-yarn dev
-
-# Build for production
-yarn build
-
-# Run tests
+yarn lint
+yarn typecheck
 yarn test
+yarn build
 ```
 
-## 📄 License
+Linting uses `@skapxd/eslint-opinionated` with the package preset as a strict gate:
+
+- `yarn lint`: runs ESLint on maintained source files and fails on any violation.
+- `yarn lint:full`: audits the full package preset through `skapxd-lint`.
+- `yarn lint:adopt`: asks `skapxd-lint` for the next incremental adoption batch.
+- `yarn lint:changed`: checks only git-changed files with the package preset.
+
+`yarn start` runs the compiled CLI, so rebuild after source changes:
+
+```bash
+yarn build
+yarn start ./src/cli.ts -r
+```
+
+## License
 
 MIT

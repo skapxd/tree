@@ -1,36 +1,40 @@
-import { type Parser, type OutlineResult, type Section } from '../../types';
+import { type OutlineResult, type Parser, type Section } from '@/file-tree/types';
 
 export const markdownParser: Parser = {
   parse(content: string): OutlineResult {
     const lines = content.split('\n');
     const sections: Section[] = [];
 
-    // Pass 1: Find all headings
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const match = line?.match(/^(#{1,6})\s+(.+)$/);
-      if (match) {
-        sections.push({
-          level: match[1]!.length,
-          title: match[2]!,
-          kind: match[1]!,
-          fullHeading: line!,
-          startLine: i + 1,
-          endLine: lines.length, // temporary
-        });
-      }
+    for (const [index, line] of lines.entries()) {
+      const match = line.match(/^(#{1,6})\s+(.+)$/);
+      if (match === null) continue;
+
+      const marker = match[1];
+      const title = match[2];
+      const lacksHeadingParts = marker === undefined || title === undefined;
+      if (lacksHeadingParts) continue;
+
+      sections.push({
+        level: marker.length,
+        title,
+        kind: marker,
+        fullHeading: line,
+        startLine: index + 1,
+        endLine: lines.length,
+      });
     }
 
-    // Pass 2: Calculate endLine
-    for (let i = 0; i < sections.length; i++) {
-      const current = sections[i];
-      if (!current) continue;
+    for (let index = 0; index < sections.length; index += 1) {
+      const current = sections[index];
+      if (current === undefined) continue;
 
       current.endLine = lines.length;
 
-      for (let j = i + 1; j < sections.length; j++) {
-        const next = sections[j];
-        if (next && next.level <= current.level) {
+      for (let nextIndex = index + 1; nextIndex < sections.length; nextIndex += 1) {
+        const next = sections[nextIndex];
+        const closesCurrentSection =
+          next !== undefined && next.level <= current.level;
+        if (closesCurrentSection) {
           current.endLine = next.startLine - 1;
           break;
         }

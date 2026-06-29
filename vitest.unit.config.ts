@@ -2,19 +2,21 @@ import { defineConfig } from 'vitest/config';
 import path from 'path';
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   test: {
     include: ['src/**/*.spec.ts'],
     globals: true, // Para poder usar describe, it, expect sin importar (opcional, pero cómodo)
     reporters: ['default', 'html'],
-    outputFile: path.resolve(__dirname, 'test-reports/unit/index.html'),
-    alias: {
-      '@skapxd/tree': path.resolve(__dirname, './src/index.ts'),
-    },
+    outputFile: path.resolve(__dirname, 'coverage/unit/index.html'),
     coverage: {
       enabled: true,
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      reportsDirectory: path.resolve(__dirname, 'test-reports/coverage'),
+      reportsDirectory: path.resolve(__dirname, 'coverage/v8'),
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.spec.ts', 'dist/**/*', 'src/cli.ts', 'src/file-tree/cli.ts'], // Excluir CLI de unit tests
       thresholds: {

@@ -1,241 +1,273 @@
 import ts from 'typescript';
-import { type Parser, type OutlineResult, type Section } from '../../types';
+import { type OutlineResult, type Parser, type Section } from '@/file-tree/types';
+
+type AddSection = (title: string, node: ts.Node, kind: string, level: number) => void;
+type VisitNode = (node: ts.Node, level: number) => void;
+
+const tsxParserHelpers = {
+  getExportedKind(baseKind: string, node: ts.Node): string {
+    const isExportedNode = isExported(node);
+    return isExportedNode ? `${baseKind} export` : baseKind;
+  },
+
+  getExpressionName(expression: ts.Expression): string | null {
+    const isIdentifierExpression = ts.isIdentifier(expression);
+    if (isIdentifierExpression) return expression.text;
+
+    const isPropertyAccessExpression = ts.isPropertyAccessExpression(expression);
+    if (isPropertyAccessExpression) return expression.name.text;
+
+    return null;
+  },
+};
 
 export const tsxParser: Parser = {
   parse(content: string): OutlineResult {
     const lines = content.split('\n');
     const sections: Section[] = [];
-
-    // Create AST from source
     const sourceFile = ts.createSourceFile(
       'temp.tsx',
       content,
       ts.ScriptTarget.Latest,
-      true // setParentNodes
+      true
     );
 
-    function visitNode(node: ts.Node, level: number) {
-      let title = '';
-      let kind = '';
-      let shouldRecurse = true;
-      let nextLevel = level;
+    const addSection: AddSection = (title, node, kind, level) => {
+      const { line: startLine } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
+      const { line: endLine } = sourceFile.getLineAndCharacterOfPosition(node.getEnd());
 
-      // --- Imports (Top-level only usually) ---
-      if (ts.isImportDeclaration(node)) {
-        const moduleSpecifier = (node.moduleSpecifier as ts.StringLiteral).text;
-        title = moduleSpecifier;
-        kind = 'import';
-        shouldRecurse = false; // Don't look inside imports
-      }
-      
-      // --- Functions (Declaration, Expression, Arrow) ---
-      else if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
-        if (ts.isFunctionDeclaration(node)) {
-            title = node.name?.text || 'anonymous';
-        } else {
-             // Try to infer name from parent variable/property assignment if possible, 
-             // but usually the parent handles the title. 
-             // If we are here, it might be an anonymous function or we are visiting the function body.
-             // Actually, for Arrow/Expression, often the parent (Variable/Property) creates the entry.
-             // We just need to ensure we recurse into the BODY.
-             
-             // If this node is NOT a standalone statement (like FunctionDeclaration), 
-             // we might skip creating a section for it if the parent already did.
-             // But if it's an anonymous function passed as arg, maybe we want to show it?
-             // For now, let's only title FunctionDeclarations, and rely on parent handling for Arrows assigned to vars.
-        }
-        
-        if (title && title !== 'anonymous') {
-            kind = 'func';
-            if (isExported(node)) kind = 'func export';
-        }
-        
-        nextLevel = level + 1;
-      }
-      
-      // --- Classes ---
-      else if (ts.isClassDeclaration(node)) {
-        title = node.name?.text || 'anonymous';
-        kind = 'class';
-        if (isExported(node)) kind = 'class export';
-        nextLevel = level + 1;
-      }
-      
-      // --- Interfaces ---
-      else if (ts.isInterfaceDeclaration(node)) {
-        title = node.name.text;
-        kind = 'intf';
-        if (isExported(node)) kind = 'intf export';
-        nextLevel = level + 1;
-      }
-      
-      // --- Type Aliases ---
-      else if (ts.isTypeAliasDeclaration(node)) {
-        title = node.name.text;
-        kind = 'type';
-        if (isExported(node)) kind = 'type export';
-        nextLevel = level + 1; // Types might have object literals inside?
-      }
-      
-      // --- Variables (const/let/var) ---
-      else if (ts.isVariableStatement(node)) {
-        // VariableStatement contains VariableDeclarationList which contains VariableDeclaration(s)
-        // We handle the Statement to capture the "Export" modifier easily
-        const list = node.declarationList;
-        for (const decl of list.declarations) {
-            visitVariableDeclaration(decl, level, isExported(node));
-        }
-        return; // We handled children manually
+      sections.push({
+        level,
+        title,
+        kind,
+        fullHeading: lines[startLine] ?? title,
+        startLine: startLine + 1,
+        endLine: endLine + 1,
+      });
+    };
+
+    const recurseChildren = (node: ts.Node, level: number): void => {
+      ts.forEachChild(node, child => visitNode(child, level));
+    };
+
+    const visitImport = (node: ts.Node, level: number): boolean => {
+      const isImportNode = ts.isImportDeclaration(node);
+      if (!isImportNode) return false;
+
+      const moduleSpecifier = node.moduleSpecifier;
+      const hasStringModuleSpecifier = ts.isStringLiteralLike(moduleSpecifier);
+      if (!hasStringModuleSpecifier) return true;
+
+      addSection(moduleSpecifier.text, node, 'import', level);
+      return true;
+    };
+
+    const visitFunction = (node: ts.Node, level: number): boolean => {
+      const isFunctionDeclaration = ts.isFunctionDeclaration(node);
+      const isAnonymousFunction =
+        ts.isFunctionExpression(node) || ts.isArrowFunction(node);
+      const isFunctionLike = isFunctionDeclaration || isAnonymousFunction;
+
+      if (!isFunctionLike) return false;
+
+      if (!isFunctionDeclaration) {
+        recurseChildren(node, level + 1);
+        return true;
       }
 
-      // --- Methods / Properties in Classes/Interfaces/Literals ---
-      else if (ts.isMethodDeclaration(node) || ts.isMethodSignature(node)) {
-        if (ts.isIdentifier(node.name)) {
-            title = node.name.text;
-            kind = 'meth';
-            nextLevel = level + 1;
-        }
-      }
-      else if (ts.isPropertyDeclaration(node) || ts.isPropertySignature(node)) {
-         if (ts.isIdentifier(node.name)) {
-            title = node.name.text;
-            kind = 'prop';
-            // Check if initializer is an arrow function or function expression to change kind?
-            if (ts.isPropertyDeclaration(node) && node.initializer && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) {
-                kind = 'meth';
-            }
-            nextLevel = level + 1;
-         }
-      }
-      else if (ts.isPropertyAssignment(node)) {
-          // Object literal property:  key: value
-          if (ts.isIdentifier(node.name) || ts.isStringLiteral(node.name)) {
-              title = node.name.text;
-              kind = 'prop';
-              if (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer)) {
-                  kind = 'meth'; // It's a method-like property
-              } else if (ts.isObjectLiteralExpression(node.initializer)) {
-                  // It's a nested object, like 'parse' in the user example containing 'lines', 'sections'
-                  // We treat it as a prop, but recursion will fill children
-              }
-              nextLevel = level + 1;
-          }
+      const title = node.name?.text ?? 'anonymous';
+      const isNamedFunction = title !== 'anonymous';
+      if (isNamedFunction) {
+        addSection(title, node, tsxParserHelpers.getExportedKind('func', node), level);
       }
 
-      // --- Call Expressions (e.g. program.action(() => ...), describe('...', () => ...)) ---
-      else if (ts.isCallExpression(node)) {
-          // Check if any argument is a function, indicating a callback block
-          const hasCallback = node.arguments.some(arg => 
-              ts.isArrowFunction(arg) || ts.isFunctionExpression(arg)
-          );
+      recurseChildren(node, level + 1);
+      return true;
+    };
 
-          if (hasCallback) {
-              // Try to get the function name
-              let name = '';
-              if (ts.isIdentifier(node.expression)) {
-                  name = node.expression.text;
-              } else if (ts.isPropertyAccessExpression(node.expression)) {
-                  name = node.expression.name.text;
-              }
+    const visitClass = (node: ts.Node, level: number): boolean => {
+      const isClassNode = ts.isClassDeclaration(node);
+      if (!isClassNode) return false;
 
-              if (name) {
-                  title = `${name}() callback`;
-                  kind = 'call';
-                  nextLevel = level + 1;
-              }
-          }
+      const title = node.name?.text ?? 'anonymous';
+      addSection(title, node, tsxParserHelpers.getExportedKind('class', node), level);
+      recurseChildren(node, level + 1);
+      return true;
+    };
+
+    const visitInterface = (node: ts.Node, level: number): boolean => {
+      const isInterfaceNode = ts.isInterfaceDeclaration(node);
+      if (!isInterfaceNode) return false;
+
+      addSection(node.name.text, node, tsxParserHelpers.getExportedKind('intf', node), level);
+      recurseChildren(node, level + 1);
+      return true;
+    };
+
+    const visitTypeAlias = (node: ts.Node, level: number): boolean => {
+      const isTypeAliasNode = ts.isTypeAliasDeclaration(node);
+      if (!isTypeAliasNode) return false;
+
+      addSection(node.name.text, node, tsxParserHelpers.getExportedKind('type', node), level);
+      recurseChildren(node, level + 1);
+      return true;
+    };
+
+    const visitVariableStatement = (node: ts.Node, level: number): boolean => {
+      const isVariableStatementNode = ts.isVariableStatement(node);
+      if (!isVariableStatementNode) return false;
+
+      const exported = isExported(node);
+      for (const declaration of node.declarationList.declarations) {
+        visitVariableDeclaration(declaration, level, exported);
       }
 
-      // --- Add to sections if we found a meaningful entity ---
-      if (title) {
-        // Adjust level: The user wants nesting. 
-        // Note: 'level' passed in is the indentation level.
-        
-        const { line: startLine } = sourceFile.getLineAndCharacterOfPosition(node.getStart());
-        const { line: endLine } = sourceFile.getLineAndCharacterOfPosition(node.getEnd());
+      return true;
+    };
 
-        sections.push({
-          level,
-          title,
-          kind,
-          fullHeading: lines[startLine] || title,
-          startLine: startLine + 1,
-          endLine: endLine + 1,
-        });
+    const visitMethod = (node: ts.Node, level: number): boolean => {
+      const isMethodNode = ts.isMethodDeclaration(node) || ts.isMethodSignature(node);
+      if (!isMethodNode) return false;
+
+      const hasIdentifierName = ts.isIdentifier(node.name);
+      if (!hasIdentifierName) return true;
+
+      addSection(node.name.text, node, 'meth', level);
+      recurseChildren(node, level + 1);
+      return true;
+    };
+
+    const visitProperty = (node: ts.Node, level: number): boolean => {
+      const isPropertyNode = ts.isPropertyDeclaration(node) || ts.isPropertySignature(node);
+      if (!isPropertyNode) return false;
+
+      const hasIdentifierName = ts.isIdentifier(node.name);
+      if (!hasIdentifierName) return true;
+
+      const hasFunctionInitializer =
+        ts.isPropertyDeclaration(node) &&
+        node.initializer !== undefined &&
+        (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer));
+      const kind = hasFunctionInitializer ? 'meth' : 'prop';
+
+      addSection(node.name.text, node, kind, level);
+      recurseChildren(node, level + 1);
+      return true;
+    };
+
+    const visitPropertyAssignment = (node: ts.Node, level: number): boolean => {
+      const isPropertyAssignmentNode = ts.isPropertyAssignment(node);
+      if (!isPropertyAssignmentNode) return false;
+
+      const hasSupportedName = ts.isIdentifier(node.name) || ts.isStringLiteral(node.name);
+      if (!hasSupportedName) return true;
+
+      const hasFunctionInitializer =
+        ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer);
+      const kind = hasFunctionInitializer ? 'meth' : 'prop';
+
+      addSection(node.name.text, node, kind, level);
+      recurseChildren(node, level + 1);
+      return true;
+    };
+
+    const visitCallExpression = (node: ts.Node, level: number): boolean => {
+      const isCallNode = ts.isCallExpression(node);
+      if (!isCallNode) return false;
+
+      const hasCallback = node.arguments.some(
+        argument => ts.isArrowFunction(argument) || ts.isFunctionExpression(argument)
+      );
+      if (!hasCallback) return false;
+
+      const name = tsxParserHelpers.getExpressionName(node.expression);
+      if (name === null) return false;
+
+      addSection(`${name}() callback`, node, 'call', level);
+      recurseChildren(node, level + 1);
+      return true;
+    };
+
+    const visitBindingPattern = (
+      node: ts.VariableDeclaration,
+      level: number,
+      kind: string
+    ): void => {
+      const isBindingPattern =
+        ts.isObjectBindingPattern(node.name) || ts.isArrayBindingPattern(node.name);
+      if (!isBindingPattern) return;
+
+      for (const element of node.name.elements) {
+        const isNamedBindingElement =
+          ts.isBindingElement(element) && ts.isIdentifier(element.name);
+        if (!isNamedBindingElement) continue;
+
+        addSection(element.name.text, element, kind, level);
       }
 
-      // --- Recursion Logic ---
-      if (shouldRecurse) {
-          ts.forEachChild(node, (child) => visitNode(child, nextLevel));
+      const hasInitializer = node.initializer !== undefined;
+      if (hasInitializer) {
+        visitNode(node.initializer, level + 1);
       }
-    }
+    };
 
-    function visitVariableDeclaration(node: ts.VariableDeclaration, level: number, exported: boolean) {
-        let kind = 'var';
-        if (exported) kind = 'var export';
+    const visitVariableDeclaration = (
+      node: ts.VariableDeclaration,
+      level: number,
+      exported: boolean
+    ): void => {
+      const kind = exported ? 'var export' : 'var';
+      const hasIdentifierName = ts.isIdentifier(node.name);
 
-        // Helper to push a section
-        const addSection = (name: string, nodeToMap: ts.Node, forceKind?: string) => {
-             const { line: startLine } = sourceFile.getLineAndCharacterOfPosition(nodeToMap.getStart());
-             const { line: endLine } = sourceFile.getLineAndCharacterOfPosition(nodeToMap.getEnd());
+      if (!hasIdentifierName) {
+        visitBindingPattern(node, level, kind);
+        return;
+      }
 
-             sections.push({
-                level,
-                title: name,
-                kind: forceKind || kind,
-                fullHeading: lines[startLine] || name,
-                startLine: startLine + 1,
-                endLine: endLine + 1,
-             });
-        };
+      const hasFunctionInitializer =
+        node.initializer !== undefined &&
+        (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer));
+      let finalKind = kind;
+      if (hasFunctionInitializer) {
+        finalKind = exported ? 'func export' : 'func';
+      }
 
-        if (ts.isIdentifier(node.name)) {
-            const title = node.name.text;
-            
-            // Check if it's a function assignment (const foo = () => {})
-            let finalKind = kind;
-            if (node.initializer && (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer))) {
-                 finalKind = 'func';
-                 if (exported) finalKind = 'func export';
-            }
-            
-            addSection(title, node, finalKind);
+      addSection(node.name.text, node, finalKind, level);
 
-             // Recurse into initializer
-             if (node.initializer) {
-                 visitNode(node.initializer, level + 1);
-             }
-        } 
-        else if (ts.isObjectBindingPattern(node.name) || ts.isArrayBindingPattern(node.name)) {
-            // Handle destructuring: const { a, b } = obj; or const [x, y] = arr;
-            // We just list the bound names. We generally don't recurse into initializers for individual bindings easily 
-            // unless we want to associate the whole initializer with each? 
-            // Usually destructuring doesn't define "methods" via initializer in the same way.
-            
-            for (const element of node.name.elements) {
-                if (ts.isBindingElement(element) && ts.isIdentifier(element.name)) {
-                    addSection(element.name.text, element);
-                }
-            }
-            
-            // Still recurse into the initializer of the whole statement to find things inside? 
-            // e.g. const { a } = someFunction(() => { ... })
-            if (node.initializer) {
-                 visitNode(node.initializer, level + 1);
-            }
-        }
-    }
+      const hasInitializer = node.initializer !== undefined;
+      if (hasInitializer) {
+        visitNode(node.initializer, level + 1);
+      }
+    };
 
-    // Start traversal at level 1
-    // We iterate specific top-level statements to avoid wrapping everything in a "SourceFile" node
-    ts.forEachChild(sourceFile, (node) => visitNode(node, 1));
+    const visitNode: VisitNode = (node, level) => {
+      const handledNode =
+        visitImport(node, level) ||
+        visitFunction(node, level) ||
+        visitClass(node, level) ||
+        visitInterface(node, level) ||
+        visitTypeAlias(node, level) ||
+        visitVariableStatement(node, level) ||
+        visitMethod(node, level) ||
+        visitProperty(node, level) ||
+        visitPropertyAssignment(node, level) ||
+        visitCallExpression(node, level);
+
+      if (handledNode) return;
+
+      recurseChildren(node, level);
+    };
+
+    ts.forEachChild(sourceFile, node => visitNode(node, 1));
 
     return { lines, sections };
   },
 };
 
 function isExported(node: ts.Node): boolean {
-  return (
-    (ts.getCombinedModifierFlags(node as ts.Declaration) & ts.ModifierFlags.Export) !== 0
-  );
+  const canHaveModifiers = ts.canHaveModifiers(node);
+  if (!canHaveModifiers) return false;
+
+  const modifiers = ts.getModifiers(node) ?? [];
+  return modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword);
 }

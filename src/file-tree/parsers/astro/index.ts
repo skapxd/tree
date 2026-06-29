@@ -1,99 +1,143 @@
-import { type Parser, type OutlineResult, type Section } from '../../types';
-import { tsxParser } from '../tsx';
+import { tsxParser } from '@/file-tree/parsers/tsx';
+import { type OutlineResult, type Parser, type Section } from '@/file-tree/types';
+
+type AstroTag = {
+  attrs: string;
+  index: number;
+  isSelfClosing: boolean;
+  rawName: string;
+};
+
+const VOID_ELEMENTS = new Set([
+  'area',
+  'base',
+  'br',
+  'col',
+  'embed',
+  'hr',
+  'img',
+  'input',
+  'link',
+  'meta',
+  'param',
+  'source',
+  'track',
+  'wbr',
+]);
+
+const astroParserHelpers = {
+  closeTagStack(stack: string[], name: string): void {
+    const last = stack[stack.length - 1];
+    const closesCurrentTag = last === name;
+    if (closesCurrentTag) {
+      stack.pop();
+    }
+  },
+
+  getId(attrs: string): string | null {
+    const idMatch = attrs.match(/id=["']([^"']+)["']/);
+    return idMatch?.[1] ?? null;
+  },
+
+  getStartLine(content: string, totalIndex: number): number {
+    return content.slice(0, totalIndex).split(/\r\n|\r|\n/).length;
+  },
+
+  getTag(match: RegExpExecArray): AstroTag | null {
+    const rawName = match[1];
+    const attrs = match[2];
+    const selfClosingMarker = match[3];
+    const lacksTagParts =
+      rawName === undefined || attrs === undefined || selfClosingMarker === undefined;
+    if (lacksTagParts) return null;
+
+    const normalizedName = rawName.toLowerCase().replace('/', '');
+    const isSelfClosing = selfClosingMarker === '/' || VOID_ELEMENTS.has(normalizedName);
+
+    return {
+      attrs,
+      index: match.index,
+      isSelfClosing,
+      rawName,
+    };
+  },
+
+  getVisibleTitle(name: string, id: string | null): string {
+    return id === null ? name : `${name}#${id}`;
+  },
+
+  getVisibleFullHeading(lines: string[], startLine: number, title: string): string {
+    const line = lines[startLine - 1]?.trim();
+    const lacksLine = line === undefined || line.length === 0;
+    return lacksLine ? title : line;
+  },
+
+  isComponent(name: string): boolean {
+    return /^[A-Z]/.test(name);
+  },
+};
 
 export const astroParser: Parser = {
   parse(content: string): OutlineResult {
     const lines = content.split('\n');
     const sections: Section[] = [];
-
     const frontmatterRegex = /^---\r?\n([\s\S]*?)\n---/;
-    const match = content.match(frontmatterRegex);
-    
+    const frontmatterMatch = content.match(frontmatterRegex);
     let templateStartIndex = 0;
 
-    // 1. Script (Frontmatter)
-    if (match) {
-      const frontmatterContent = match[1] || '';
-      const offset = 1;
+    const hasFrontmatter = frontmatterMatch !== null;
+    if (hasFrontmatter) {
+      const frontmatterContent = frontmatterMatch[1] ?? '';
       const result = tsxParser.parse(frontmatterContent);
       const shiftedSections = result.sections.map(section => ({
         ...section,
-        startLine: section.startLine + offset,
-        endLine: section.endLine + offset
+        startLine: section.startLine + 1,
+        endLine: section.endLine + 1,
       }));
       sections.push(...shiftedSections);
-      templateStartIndex = match[0].length;
+      templateStartIndex = frontmatterMatch[0].length;
     }
 
-    // 2. Template (Componentes + Custom Elements)
     const templateContent = content.slice(templateStartIndex);
-    
-    // Regex para capturar etiquetas: <tag, </tag, o <tag />
     const tagRegex = /<(\/?[a-zA-Z0-9\.-]+)([^>]*?)(\/?)>/g;
-    
     const stack: string[] = [];
-    // Elementos que no requieren cierre y no afectan la pila si no se cierran
-    const voidElements = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+    let tagMatch: RegExpExecArray | null;
 
-    let tagMatch;
     while ((tagMatch = tagRegex.exec(templateContent)) !== null) {
-        const fullTag = tagMatch[0];
-        const rawName = tagMatch[1] || '';
-        const attrs = tagMatch[2] || '';
-        // Detectar self-closing explícito (/) o implícito (void elements)
-        const isSelfClosing = tagMatch[3] === '/' || voidElements.has(rawName.toLowerCase().replace('/', ''));
+      const tag = astroParserHelpers.getTag(tagMatch);
+      if (tag === null) continue;
 
-        if (rawName.startsWith('/')) {
-            // Cierre: </tag>
-            const name = rawName.slice(1);
-            // Sacamos de la pila hasta encontrar el tag correspondiente (manejo básico de html mal formado)
-            if (stack.length > 0) {
-                const last = stack[stack.length - 1];
-                if (last === name) {
-                    stack.pop();
-                }
-            }
-        } else {
-            // Apertura: <tag>
-            const name = rawName;
-            
-            // Criterios de inclusión:
-            // 1. Empieza por Mayúscula (Componentes Astro/React/etc)
-            const isComponent = /^[A-Z]/.test(name);
-            // 2. Contiene un guión (Custom Elements)
-            const isCustomElement = name.includes('-');
-            // 3. Tiene un ID
-            const idMatch = attrs.match(/id=["']([^"']+)["']/);
-            const hasId = !!idMatch;
+      const isClosingTag = tag.rawName.startsWith('/');
+      if (isClosingTag) {
+        astroParserHelpers.closeTagStack(stack, tag.rawName.slice(1));
+        continue;
+      }
 
-            const shouldShow = isComponent || isCustomElement || hasId;
+      const name = tag.rawName;
+      const isComponent = astroParserHelpers.isComponent(name);
+      const isCustomElement = name.includes('-');
+      const id = astroParserHelpers.getId(tag.attrs);
+      const hasId = id !== null;
+      const shouldShow = isComponent || isCustomElement || hasId;
 
-            if (shouldShow) {
-                let title = name;
-                if (idMatch) {
-                    title += `#${idMatch[1]}`;
-                }
+      if (shouldShow) {
+        const title = astroParserHelpers.getVisibleTitle(name, id);
+        const totalIndex = templateStartIndex + tag.index;
+        const startLine = astroParserHelpers.getStartLine(content, totalIndex);
 
-                const totalIndex = templateStartIndex + tagMatch.index;
-                const textUpToMatch = content.slice(0, totalIndex);
-                const startLine = textUpToMatch.split(/\r\n|\r|\n/).length;
+        sections.push({
+          level: 1 + stack.length,
+          title,
+          kind: isComponent ? 'comp' : 'elem',
+          fullHeading: astroParserHelpers.getVisibleFullHeading(lines, startLine, title),
+          startLine,
+          endLine: startLine,
+        });
+      }
 
-                sections.push({
-                    level: 1 + stack.length,
-                    title,
-                    kind: isComponent ? 'comp' : 'elem', // 'elem' para custom elements o html con id
-                    fullHeading: lines[startLine - 1]?.trim() || title,
-                    startLine,
-                    endLine: startLine
-                });
-            }
-
-            // Si no es self-closing, lo añadimos a la pila SIEMPRE, 
-            // para mantener la profundidad correcta de sus hijos, sean o no mostrados.
-            if (!isSelfClosing) {
-                stack.push(name);
-            }
-        }
+      if (!tag.isSelfClosing) {
+        stack.push(name);
+      }
     }
 
     return { lines, sections };

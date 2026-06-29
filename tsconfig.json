@@ -5,9 +5,10 @@
     "moduleResolution": "NodeNext",
     "baseUrl": ".",
     "paths": {
-      "@skapxd/tree": ["./src/index.ts"]
+      "@/*": ["./src/*"]
     },
     "lib": ["ES2020", "DOM"],
+    "types": ["node"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,

@@ -51,7 +51,7 @@ describe('file-tree module', () => {
     it('should read file content', () => {
       // We can use an actual file from the project
       const content = readFile(path.join(__dirname, 'index.ts'));
-      expect(content).toContain('import path from \'path\';');
+      expect(content).toContain("export { getParser } from './get-parser';");
     });
 
     it('should throw error if file not found', () => {

@@ -5,7 +5,7 @@ export * from './utils';
 export * from './gitignore';
 
 // Re-export main functionality for programmatic use
-import path from 'path';
+import path from 'node:path';
 import { dirToJson } from './parser';
 import { generateTreeString } from './drawer';
 import { parseIgnoreOption } from './utils';
@@ -21,21 +21,19 @@ export type TreeOptions = {
  * Generates an ASCII tree string for the given directory.
  */
 export function tree(options: TreeOptions): string | null {
-  let ignoreRegex: RegExp | null = null;
-
-  if (options.ignore instanceof RegExp) {
-    ignoreRegex = options.ignore;
-  } else {
-    ignoreRegex = parseIgnoreOption(options.ignore);
-  }
+  const ignoreOption = options.ignore;
+  const hasRegexIgnore = ignoreOption instanceof RegExp;
+  const ignorePattern = typeof ignoreOption === 'string' ? ignoreOption : undefined;
+  const ignoreRegex = hasRegexIgnore
+    ? ignoreOption
+    : parseIgnoreOption(ignorePattern);
 
   const targetPath = path.resolve(options.directory);
 
   const structure = dirToJson(targetPath, ignoreRegex, options.onlyFolder);
 
-  if (!structure) {
-    return null;
-  }
+  const lacksStructure = structure === null;
+  if (lacksStructure) return null;
 
   return generateTreeString(structure, { color: Boolean(options.color) });
 }
