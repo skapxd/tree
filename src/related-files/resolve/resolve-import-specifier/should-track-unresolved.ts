@@ -1,9 +1,13 @@
 import { type ResolverOptions } from '@/related-files/types';
+import { hasExplicitUnsupportedExtension } from './has-explicit-unsupported-extension';
 import { matchesPathMapping } from './matches-path-mapping';
 
 export function shouldTrackUnresolved(
   specifier: string,
   resolverOptions: ResolverOptions
 ): boolean {
+  const isKnownUnsupportedAsset = hasExplicitUnsupportedExtension(specifier);
+  if (isKnownUnsupportedAsset) return false;
+
   return specifier.startsWith('.') || matchesPathMapping(specifier, resolverOptions);
 }

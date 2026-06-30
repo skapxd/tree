@@ -104,6 +104,27 @@ describe('related-files module', () => {
     expect(toProjectPaths(tempDir, result.imports)).toEqual(['src/components/Button/index.tsx']);
   });
 
+  it('extracts astro frontmatter imports when the fence has trailing whitespace', () => {
+    writeProjectFile(tempDir, 'src/layouts/Layout.astro', '<slot />\n');
+    writeProjectFile(tempDir, 'src/components/AppContent.astro', '<main />\n');
+    writeProjectFile(
+      tempDir,
+      'src/pages/app.astro',
+      "--- \nimport Layout from '../layouts/Layout.astro';\nimport AppContent from '../components/AppContent.astro';\n---\n<Layout><AppContent /></Layout>\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/pages/app.astro'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual([
+      'src/components/AppContent.astro',
+      'src/layouts/Layout.astro',
+    ]);
+  });
+
   it('resolves exact and wildcard tsconfig paths without baseUrl from the scan root', () => {
     writeProjectFile(
       tempDir,
@@ -182,6 +203,28 @@ describe('related-files module', () => {
     ]);
     expect(formatRelatedFilesSummary(result)).toContain('Unresolved local imports (1)');
     expect(formatRelatedFilesTree(result)).toContain('unresolved local imports (1)');
+  });
+
+  it('does not report explicit unsupported asset imports as unresolved code imports', () => {
+    writeProjectFile(
+      tempDir,
+      'src/pages/page.astro',
+      "---\nimport '../styles/global.css';\nimport './missing';\n---\n<div />\n"
+    );
+    writeProjectFile(tempDir, 'src/styles/global.css', 'body {}\n');
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/pages/page.astro'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(result.unresolved).toEqual([
+      {
+        file: path.join(tempDir, 'src/pages/page.astro'),
+        specifier: './missing',
+      },
+    ]);
   });
 
   it('renders a layered summary that separates implementation path from risk surface', () => {
