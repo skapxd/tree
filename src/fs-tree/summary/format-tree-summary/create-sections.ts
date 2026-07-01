@@ -1,15 +1,19 @@
 import { formatFileLabel } from '@/fs-tree/summary/format-file-label';
 import { type TreeSummary } from '@/fs-tree/summary/types';
-import { formatTextStatsLabel } from '@/shared/text-stats';
+import { type SummaryStyleOptions } from '@/shared/summary-style';
+import { formatTextStatsSuffix } from '@/shared/text-stats';
 import { getTopExtensions } from './get-top-extensions';
 import { type SummarySection } from './types';
 
-export function createSections(summary: TreeSummary): SummarySection[] {
+export function createSections(
+  summary: TreeSummary,
+  options: SummaryStyleOptions = {}
+): SummarySection[] {
   const shouldSkipSections = summary.onlyFolder || summary.fileCount === 0;
   if (shouldSkipSections) return [];
 
   const largestFiles = summary.largestFiles.map(file => {
-    return `${file.path} (${formatTextStatsLabel(file)})`;
+    return `${file.path} ${formatTextStatsSuffix(file, options)}`;
   });
   const extensions = getTopExtensions(summary).map(extension => {
     return `${extension.extension}: ${formatFileLabel(extension.count)}`;

@@ -11,7 +11,7 @@ export function formatTreeSummary(
 ): string {
   const lines = ['summary'];
   const rows = createFlatRows(summary);
-  const sections = createSections(summary);
+  const sections = createSections(summary, options);
 
   appendFlatRows(lines, rows, sections.length > 0, options);
   appendSections(lines, sections, options);

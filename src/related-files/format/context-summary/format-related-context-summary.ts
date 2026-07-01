@@ -15,7 +15,7 @@ export function formatRelatedContextSummary(
   const hasLargestFiles = summary.largestFiles.length > 0;
 
   appendSummaryRows(lines, rows, hasLargestFiles, options);
-  appendLargestFiles(lines, result.root, summary.largestFiles);
+  appendLargestFiles(lines, result.root, summary.largestFiles, options);
 
   return lines.join('\n');
 }

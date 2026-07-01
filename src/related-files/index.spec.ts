@@ -441,6 +441,14 @@ describe('related-files module', () => {
     expect(treeOutput).toContain('src/controller.ts (2 lines, 53 chars, ~14 tokens)');
     expect(treeOutput).toContain('src/module.ts (2 lines, 51 chars, ~13 tokens)');
     expect(treeOutput).toContain('src/use-case.ts (2 lines, 48 chars, ~12 tokens)');
+
+    const coloredTreeOutput = formatRelatedFilesTree(result, { color: true });
+    const largestFilesStart = coloredTreeOutput.indexOf('largest files by chars');
+    const largestFilesSection = coloredTreeOutput.slice(largestFilesStart);
+
+    expect(largestFilesSection).toContain(
+      'src/controller.ts \x1b[2m(2 lines, 53 chars, ~14 tokens)\x1b[0m'
+    );
   });
 
   it('renders notes for entrypoints and explicit direct-depth scans', () => {

@@ -217,10 +217,20 @@ describe('fs-tree module', () => {
     it('should dim line count metadata when color output is enabled', () => {
       fs.writeFileSync(path.join(tempDir, 'short.ts'), 'one\ntwo');
 
-      const result = tree({ directory: tempDir, color: true });
+      const result = tree({ directory: tempDir, color: true, includeSummary: true });
 
       expect(result).toBeTypeOf('string');
+      if (result === null) throw new Error('Expected tree result');
+
       expect(result).toContain('short.ts \x1b[2m(2 lines, 7 chars, ~2 tokens)\x1b[0m');
+
+      const largestFilesStart = result.indexOf('largest files by chars');
+      const topExtensionsStart = result.indexOf('top extensions');
+      const largestFilesSection = result.slice(largestFilesStart, topExtensionsStart);
+
+      expect(largestFilesSection).toContain(
+        'short.ts \x1b[2m(2 lines, 7 chars, ~2 tokens)\x1b[0m'
+      );
     });
 
     it('should handle onlyFolder option', () => {

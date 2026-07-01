@@ -1,5 +1,6 @@
 import { type TreeStructure } from '@/fs-tree/scan/dir-to-json';
 import { formatTreeSummary, type TreeSummary } from '@/fs-tree/summary';
+import { ANSI_DIM, ANSI_RESET } from '@/shared/summary-style/constants';
 
 export type DrawOptions = {
   color?: boolean;
@@ -18,9 +19,6 @@ const characters = {
 };
 
 const FILE_METADATA_SUFFIX_REGEX = /^(.*) \(([^()]*)\)$/;
-const ANSI_DIM = '\x1b[2m';
-const ANSI_RESET = '\x1b[0m';
-
 const generateTreeStringHelpers = {
   formatDirectoryName(name: string): string {
     return name.endsWith('/') ? name : `${name}/`;
