@@ -1,6 +1,7 @@
 # @skapxd/tree
 
 [![CI](https://github.com/skapxd/tree/actions/workflows/ci.yml/badge.svg)](https://github.com/skapxd/tree/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/skapxd/tree/badge)](https://securityscorecards.dev/viewer/?uri=github.com/skapxd/tree)
 [![npm version](https://badge.fury.io/js/@skapxd%2Ftree.svg)](https://badge.fury.io/js/@skapxd%2Ftree)
 [![skills.sh](https://skills.sh/b/skapxd/tree)](https://skills.sh/skapxd/tree)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -15,6 +16,7 @@ Project structure and relationship visualizer for codebases, docs, and AI-agent 
 
 It is optimized for quick human inspection and for AI agents that need bounded, high-signal context before editing.
 Every rendered CLI output also reports the approximate cost of pasting that output into an agent.
+Releases are published from GitHub Actions with npm provenance, and the repository exposes an OpenSSF Scorecard for public supply-chain security posture.
 
 ## Quick Start
 
