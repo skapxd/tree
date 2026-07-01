@@ -27,9 +27,9 @@ export function createFlatRows(summary: TreeSummary): string[] {
     `median chars per file: ${formatCharacterLabel(getMedianCount(summary.characterCounts))}`,
     `max line length: ${formatCharacterLabel(summary.maxLineLength)}`,
   ];
-  const hasUnreadableFiles = summary.unreadableFileCount > 0;
-  if (hasUnreadableFiles) {
-    rows.push(`unreadable files: ${formatCount(summary.unreadableFileCount)}`);
+  const hasFilesWithoutTextStats = summary.fileWithoutTextStatsCount > 0;
+  if (hasFilesWithoutTextStats) {
+    rows.push(`files without text stats: ${formatCount(summary.fileWithoutTextStatsCount)}`);
   }
 
   return rows;

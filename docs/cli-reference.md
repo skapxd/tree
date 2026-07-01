@@ -28,6 +28,7 @@ tree [options] [path]
 
 Directory output ends with a compact summary of the displayed tree: directories, files, total lines,
 total chars, approximate tokens, median file size, max line length, largest files by chars, and top extensions.
+Binary and media files remain visible as files, but they are excluded from line/char/token text-context totals.
 The largest-file ranking skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
 `pnpm-lock.yaml`, and `bun.lockb`.
 Symbolic links are rendered as `name -> target`; they are not followed or counted as files.
@@ -36,6 +37,7 @@ Related tree output also ends with a context summary for the related set: unique
 related files, total lines, total chars, approximate tokens, median file size, deepest relationship,
 unresolved references when present, and the five largest files by chars. The `--summary` flag is separate: it switches the related
 view to a compact direct/transitive layout instead of the nested tree.
+Non-text files in the related set are listed without text stats and excluded from text-context totals.
 Related mode does not follow symbolic links. Passing a symlink target to `-r` fails with a clear error,
 and imports that resolve only through symlinks remain unresolved.
 

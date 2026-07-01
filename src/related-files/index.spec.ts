@@ -16,6 +16,12 @@ function writeProjectFile(root: string, relativePath: string, content: string): 
   fs.writeFileSync(filePath, content);
 }
 
+function writeProjectBuffer(root: string, relativePath: string, content: Buffer): void {
+  const filePath = path.join(root, relativePath);
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, content);
+}
+
 function toProjectPaths(root: string, entries: RelatedFileEntry[]): string[] {
   return entries.map(entry => path.relative(root, entry.file).split(path.sep).join('/')).sort();
 }
@@ -659,6 +665,35 @@ describe('related-files module', () => {
     expect(treeOutput).toContain('docs/index.md (2 lines, 35 chars, ~9 tokens)');
     expect(treeOutput).toContain('docs/guide.md (1 line, 30 chars, ~8 tokens)');
     expect(summaryOutput).toContain('docs/guide.md - Guide Docs (1 line, 30 chars, ~8 tokens)');
+  });
+
+  it('excludes non-text related files from related text context totals', () => {
+    writeProjectFile(tempDir, 'docs/index.md', '# Docs\n[Binary](./binary.md)\n');
+    writeProjectBuffer(
+      tempDir,
+      'docs/binary.md',
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00])
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'docs/index.md'),
+      root: tempDir,
+      direction: 'imports',
+    });
+    const output = formatRelatedFilesTree(result);
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual(['docs/binary.md']);
+    expect(output).toContain('docs/binary.md');
+    expect(output).not.toContain('docs/binary.md (');
+    expect(output).toContain('files shown: 2 files');
+    expect(output).toContain('total chars: 29 chars');
+    expect(output).toContain('files without text stats: 1 file');
+    expect(output).toContain('largest files by chars');
+    expect(output).toContain('docs/index.md (2 lines, 29 chars, ~8 tokens)');
+
+    const largestFilesStart = output.indexOf('largest files by chars');
+    const largestFilesSection = output.slice(largestFilesStart);
+    expect(largestFilesSection).not.toContain('docs/binary.md');
   });
 
   it('supports root-relative markdown links and reports unresolved local markdown links', () => {

@@ -69,6 +69,8 @@ output context
 The final `summary` block measures the visible context: unique files, total lines,
 total chars, approximate tokens, median file size, deepest relationship, unresolved local references
 when present, and the five largest files by chars in the related set.
+Binary and media files can appear as related files, but they do not receive line/char/token stats and
+do not count toward the text-context budget.
 The final `output context` block measures the visible command output itself, including the summary and
 the output context block, so agents can judge the cost of pasting this result into context.
 Related mode does not follow symbolic links. A symlink target passed to `-r` fails with a clear error,

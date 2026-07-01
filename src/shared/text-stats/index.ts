@@ -6,4 +6,7 @@ export { formatTextStatsSuffix } from './format-text-stats-suffix';
 export { formatTokenEstimateLabel } from './format-token-estimate-label';
 export { getEstimatedTokenCount } from './get-estimated-token-count';
 export { getMedianCount } from './get-median-count';
+export { isKnownNonTextFile } from './is-known-non-text-file';
+export { isLikelyTextBuffer } from './is-likely-text-buffer';
+export { readTextContent } from './read-text-content';
 export type { TextStats } from './types';

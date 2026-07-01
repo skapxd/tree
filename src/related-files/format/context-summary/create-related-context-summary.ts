@@ -28,7 +28,7 @@ export function createRelatedContextSummary(result: RelatedFilesResult): Related
     medianCharacterCount: getMedianCount(characterCounts),
     maxLineLength: Math.max(0, ...textStatEntries.map(entry => entry.maxLineLength)),
     maxDepth: getMaxDepth(result),
-    unreadableFiles: files.length - textStatEntries.length,
+    filesWithoutTextStats: files.length - textStatEntries.length,
     unresolvedCount: result.unresolved.length,
     largestFiles: getLargestFiles(textStatEntries),
   };

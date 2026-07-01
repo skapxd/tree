@@ -102,7 +102,8 @@ The directory scan respects `.gitignore` and filters common noise such as `.git`
 The final summary counts the visible tree only, so ignored files and directories are not included.
 Symbolic links are displayed as `name -> target` and are not followed or counted as files.
 Character counts use file text length, and token counts are an approximate `chars / 4` estimate for
-code-agent context planning. `largest files by chars` skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
+code-agent context planning. Binary and media files are listed, but they do not receive line/char/token
+stats and do not count toward the text-context budget. `largest files by chars` skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
 `pnpm-lock.yaml`, and `bun.lockb` so the outlier list stays useful for code review.
 The final `output context` block measures the visible CLI output itself, including that block, so
 agents can estimate the cost of pasting the command result into context. It does not include shell prompts,

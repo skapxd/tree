@@ -9,7 +9,7 @@ export function createTreeSummary(rootPath: string, onlyFolder: boolean): TreeSu
     totalLineCount: 0,
     totalCharacterCount: 0,
     maxLineLength: 0,
-    unreadableFileCount: 0,
+    fileWithoutTextStatsCount: 0,
     onlyFolder,
     extensionCounts: new Map(),
     lineCounts: [],

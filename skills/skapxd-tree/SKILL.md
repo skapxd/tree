@@ -35,6 +35,7 @@ npx --yes @skapxd/tree@1.3.1 docs/index.md -r
 ## Interpretation
 
 - File rows include lines, characters, and approximate tokens.
+- Binary and media files are listed, but skipped from line/char/token context totals.
 - The token estimate is `ceil(chars / 4)`, not exact model tokenization.
 - Directory summaries count visible, non-ignored files only.
 - `largest files by chars` is the main signal for context budget.

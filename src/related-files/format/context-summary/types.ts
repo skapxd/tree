@@ -16,7 +16,7 @@ export type RelatedContextSummary = {
   medianCharacterCount: number;
   maxLineLength: number;
   maxDepth: number;
-  unreadableFiles: number;
+  filesWithoutTextStats: number;
   unresolvedCount: number;
   largestFiles: RelatedSummaryFile[];
 };

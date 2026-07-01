@@ -15,7 +15,7 @@ export function recordTreeFile(
 
   const lacksTextStats = stats === null;
   if (lacksTextStats) {
-    summary.unreadableFileCount += 1;
+    summary.fileWithoutTextStatsCount += 1;
     return;
   }
 

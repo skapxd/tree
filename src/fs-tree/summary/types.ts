@@ -13,7 +13,7 @@ export type TreeSummary = {
   totalLineCount: number;
   totalCharacterCount: number;
   maxLineLength: number;
-  unreadableFileCount: number;
+  fileWithoutTextStatsCount: number;
   onlyFolder: boolean;
   extensionCounts: Map<string, number>;
   lineCounts: number[];

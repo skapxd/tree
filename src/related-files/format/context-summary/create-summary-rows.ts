@@ -24,9 +24,9 @@ export function createSummaryRows(summary: RelatedContextSummary): string[] {
     rows.push(`unresolved: ${formatCount(summary.unresolvedCount)}`);
   }
 
-  const hasUnreadableFiles = summary.unreadableFiles > 0;
-  if (hasUnreadableFiles) {
-    rows.push(`unreadable files: ${formatFileLabel(summary.unreadableFiles)}`);
+  const hasFilesWithoutTextStats = summary.filesWithoutTextStats > 0;
+  if (hasFilesWithoutTextStats) {
+    rows.push(`files without text stats: ${formatFileLabel(summary.filesWithoutTextStats)}`);
   }
 
   return rows;

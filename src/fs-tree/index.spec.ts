@@ -119,25 +119,30 @@ describe('fs-tree module', () => {
     it('should append a compact directory summary when requested', () => {
       fs.writeFileSync(path.join(tempDir, 'two-lines.ts'), 'one\ntwo');
       fs.writeFileSync(path.join(tempDir, 'README.md'), 'title\nbody\nend');
+      fs.writeFileSync(path.join(tempDir, 'screenshot.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00]));
 
       const result = tree({ directory: tempDir, includeSummary: true });
 
       expect(result).toBeTypeOf('string');
       expect(result).toContain('\n\nsummary\n');
       expect(result).toContain('directories: 1');
-      expect(result).toContain('files: 5');
+      expect(result).toContain('files: 6');
       expect(result).toContain('total lines: 8 lines');
       expect(result).toContain('total chars: 37 chars');
       expect(result).toContain('estimated tokens: ~10 tokens');
       expect(result).toContain('median lines per file: 1 line');
       expect(result).toContain('median chars per file: 6 chars');
       expect(result).toContain('max line length: 6 chars');
+      expect(result).toContain('files without text stats: 1');
       expect(result).toContain('largest files by chars');
+      expect(result).toContain('screenshot.png');
+      expect(result).not.toContain('screenshot.png (');
       expect(result).toContain('README.md (3 lines, 14 chars, ~4 tokens)');
       expect(result).toContain('two-lines.ts (2 lines, 7 chars, ~2 tokens)');
       expect(result).toContain('top extensions');
       expect(result).toContain('.txt: 3 files');
       expect(result).toContain('.md: 1 file');
+      expect(result).toContain('.png: 1 file');
       expect(result).toContain('.ts: 1 file');
     });
 
@@ -198,6 +203,7 @@ describe('fs-tree module', () => {
       expect(largestFilesSection).toContain('three.ts (3 lines, 13 chars, ~4 tokens)');
       expect(largestFilesSection).toContain('two.ts (2 lines, 7 chars, ~2 tokens)');
       expect(largestFilesSection).not.toContain('one.ts (1 line, 3 chars, ~1 token)');
+      expect(largestFilesSection).not.toContain('screenshot.png');
       expect(result).toContain('yarn.lock (7 lines, 33 chars, ~9 tokens)');
       expect(result).toContain('package-lock.json (6 lines, 27 chars, ~7 tokens)');
       expect(largestFilesSection).not.toContain('yarn.lock');

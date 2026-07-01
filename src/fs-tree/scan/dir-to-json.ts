@@ -10,6 +10,7 @@ import { recordTreeDirectory, recordTreeFile, type TreeSummary } from '@/fs-tree
 import {
   createTextStats,
   formatTextStatsLabel,
+  readTextContent,
   type TextStats,
 } from '@/shared/text-stats';
 import { formatSymbolicLinkLabel } from '@/shared/symlink';
@@ -22,13 +23,8 @@ const dirToJsonHelpers = {
   },
 
   getFileTextStats(filePath: string): TextStats | null {
-    const result = trySafe(() => fs.readFileSync(filePath, 'utf8'));
-    if (Result.isErr(result)) {
-      dirToJsonHelpers.absorbRecoverableBoundaryError(result.error);
-      return null;
-    }
-
-    return createTextStats(result.value);
+    const content = readTextContent(filePath);
+    return content === null ? null : createTextStats(content);
   },
 
   formatFileName(filePath: string, stats: TextStats | null): string {
