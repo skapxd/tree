@@ -1,0 +1,17 @@
+import { formatSummaryFile } from './format-summary-file';
+import { type RelatedSummaryFile } from './types';
+
+export function appendLargestFiles(
+  lines: string[],
+  root: string,
+  largestFiles: RelatedSummaryFile[]
+): void {
+  const lacksLargestFiles = largestFiles.length === 0;
+  if (lacksLargestFiles) return;
+
+  lines.push('└── largest files');
+  largestFiles.forEach((file, index) => {
+    const isLast = index === largestFiles.length - 1;
+    lines.push(`    ${isLast ? '└──' : '├──'} ${formatSummaryFile(root, file)}`);
+  });
+}

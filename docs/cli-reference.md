@@ -31,6 +31,11 @@ median lines per file, largest files, and top extensions.
 The largest-file ranking skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
 `pnpm-lock.yaml`, and `bun.lockb`.
 
+Related tree output also ends with a context summary for the related set: unique files shown,
+related files, total lines, median file size, deepest relationship, unresolved references when
+present, and the five largest files. The `--summary` flag is separate: it switches the related
+view to a compact direct/transitive layout instead of the nested tree.
+
 ## Examples
 
 ```bash

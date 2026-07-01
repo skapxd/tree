@@ -170,7 +170,21 @@ Related files for docs/index.md - Documentation Index (24 lines)
     └── README.md (260 lines)
         ├── title: @skapxd/tree
         └── link source: README.md:253 "Documentation"
+
+summary
+├── files shown: 3 files
+├── related files: 2 files
+├── total lines: 352 lines
+├── median lines per file: 68 lines
+├── max relationship depth: 1
+└── largest files
+    ├── README.md (260 lines)
+    ├── docs/guide.md (68 lines)
+    └── docs/index.md (24 lines)
 ```
+
+The full related tree ends with a context summary so agents can judge the size of
+the visible graph before reading files.
 
 The resolver handles:
 

@@ -3,6 +3,7 @@ import {
   type RelatedFormatOptions,
 } from '@/related-files/types';
 import { formatFileLabel } from './file-label';
+import { formatRelatedContextSummary } from './context-summary';
 import { getRelationshipLabels } from './relationship-labels';
 import {
   renderBranches,
@@ -85,6 +86,8 @@ export function formatRelatedFilesTree(
     lines.push(`${isLast ? '└── ' : '├── '}${group.label}`);
     group.render(isLast ? '    ' : '│   ');
   });
+
+  lines.push('', formatRelatedContextSummary(result));
 
   return lines.join('\n');
 }

@@ -386,6 +386,19 @@ describe('related-files module', () => {
     expect(output).toContain('Risk surface (imported by)');
     expect(output).toContain('├── direct importers (1)');
     expect(output).toContain('│   └── src/module.ts');
+
+    const treeOutput = formatRelatedFilesTree(result);
+
+    expect(treeOutput).toContain('\n\nsummary\n');
+    expect(treeOutput).toContain('files shown: 4 files');
+    expect(treeOutput).toContain('related files: 3 files');
+    expect(treeOutput).toContain('total lines: 7 lines');
+    expect(treeOutput).toContain('median lines per file: 2 lines');
+    expect(treeOutput).toContain('max relationship depth: 2');
+    expect(treeOutput).toContain('largest files');
+    expect(treeOutput).toContain('src/controller.ts (2 lines)');
+    expect(treeOutput).toContain('src/module.ts (2 lines)');
+    expect(treeOutput).toContain('src/use-case.ts (2 lines)');
   });
 
   it('renders notes for entrypoints and explicit direct-depth scans', () => {
@@ -580,6 +593,15 @@ describe('related-files module', () => {
       'docs/index.md (2 lines) (cycle)'
     );
     expect(treeOutput).toContain('link source: docs/guide.md:1 "Docs"');
+    expect(treeOutput).toContain('\n\nsummary\n');
+    expect(treeOutput).toContain('files shown: 2 files');
+    expect(treeOutput).toContain('related files: 1 file');
+    expect(treeOutput).toContain('total lines: 3 lines');
+    expect(treeOutput).toContain('median lines per file: 2 lines');
+    expect(treeOutput).toContain('max relationship depth: 1');
+    expect(treeOutput).toContain('largest files');
+    expect(treeOutput).toContain('docs/index.md (2 lines)');
+    expect(treeOutput).toContain('docs/guide.md (1 line)');
     expect(summaryOutput).toContain('docs/guide.md - Guide Docs (1 line)');
   });
 
