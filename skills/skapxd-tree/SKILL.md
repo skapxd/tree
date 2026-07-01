@@ -7,18 +7,18 @@ description: Use @skapxd/tree before reading source files when you need compact 
 
 Use `@skapxd/tree` to gather bounded structural context before opening full files. Prefer it when the task starts in an unfamiliar codebase, a large folder, a known source file, or a Markdown document with local links.
 
-The command is pinned to `@skapxd/tree@1.3.0` so external security tools can evaluate a stable package version. Update the pin only when intentionally releasing and validating a new package version.
+The command is pinned to `@skapxd/tree@1.3.1` so external security tools can evaluate a stable package version. Update the pin only when intentionally releasing and validating a new package version.
 
 ## Commands
 
 ```bash
-npx --yes @skapxd/tree@1.3.0
-npx --yes @skapxd/tree@1.3.0 ./src
-npx --yes @skapxd/tree@1.3.0 ./src --only-folder
-npx --yes @skapxd/tree@1.3.0 ./src --ignore "node_modules|dist|coverage|.next"
-npx --yes @skapxd/tree@1.3.0 src/index.ts
-npx --yes @skapxd/tree@1.3.0 src/routes/page.tsx -r
-npx --yes @skapxd/tree@1.3.0 docs/index.md -r
+npx --yes @skapxd/tree@1.3.1
+npx --yes @skapxd/tree@1.3.1 ./src
+npx --yes @skapxd/tree@1.3.1 ./src --only-folder
+npx --yes @skapxd/tree@1.3.1 ./src --ignore "node_modules|dist|coverage|.next"
+npx --yes @skapxd/tree@1.3.1 src/index.ts
+npx --yes @skapxd/tree@1.3.1 src/routes/page.tsx -r
+npx --yes @skapxd/tree@1.3.1 docs/index.md -r
 ```
 
 ## Workflow
