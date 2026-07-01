@@ -72,9 +72,9 @@ describe('fs-tree module', () => {
       expect(structure).toHaveProperty(rootKey);
       
       const children = (structure as any)[rootKey];
-      expect(children).toContain('a.txt (1 line)');
-      expect(children).toContain('d.txt (1 line)');
-      expect(children).toContainEqual({ b: ['c.txt (1 line)'] });
+      expect(children).toContain('a.txt (1 line, 5 chars, ~2 tokens)');
+      expect(children).toContain('d.txt (1 line, 5 chars, ~2 tokens)');
+      expect(children).toContainEqual({ b: ['c.txt (1 line, 6 chars, ~2 tokens)'] });
     });
 
     it('should respect ignore option', () => {
@@ -83,8 +83,8 @@ describe('fs-tree module', () => {
       const rootKey = path.basename(tempDir);
       const children = (structure as any)[rootKey];
       
-      expect(children).not.toContainEqual({ b: ['c.txt (1 line)'] });
-      expect(children).toContain('a.txt (1 line)');
+      expect(children).not.toContainEqual({ b: ['c.txt (1 line, 6 chars, ~2 tokens)'] });
+      expect(children).toContain('a.txt (1 line, 5 chars, ~2 tokens)');
     });
 
     it('should generate a correct tree string', () => {
@@ -96,7 +96,7 @@ describe('fs-tree module', () => {
       
       expect(treeString).toContain(rootName);
       expect(treeString).toContain('├── a.txt');
-      expect(treeString).toContain('(1 line)');
+      expect(treeString).toContain('(1 line, 5 chars, ~2 tokens)');
       expect(treeString).toContain('└── b/');
       expect(treeString).toContain('    └── c.txt');
     });
@@ -110,9 +110,9 @@ describe('fs-tree module', () => {
 
       expect(result).toBeTypeOf('string');
       expect(result).toContain('empty.txt');
-      expect(result).toContain('(0 lines)');
+      expect(result).toContain('(0 lines, 0 chars, ~0 tokens)');
       expect(result).toContain('two-lines.txt');
-      expect(result).toContain('(2 lines)');
+      expect(result).toContain('(2 lines, 7 chars, ~2 tokens)');
       expect(result).toContain('trailing-newline.txt');
     });
 
@@ -127,10 +127,14 @@ describe('fs-tree module', () => {
       expect(result).toContain('directories: 1');
       expect(result).toContain('files: 5');
       expect(result).toContain('total lines: 8 lines');
+      expect(result).toContain('total chars: 37 chars');
+      expect(result).toContain('estimated tokens: ~10 tokens');
       expect(result).toContain('median lines per file: 1 line');
-      expect(result).toContain('largest files');
-      expect(result).toContain('README.md (3 lines)');
-      expect(result).toContain('two-lines.ts (2 lines)');
+      expect(result).toContain('median chars per file: 6 chars');
+      expect(result).toContain('max line length: 6 chars');
+      expect(result).toContain('largest files by chars');
+      expect(result).toContain('README.md (3 lines, 14 chars, ~4 tokens)');
+      expect(result).toContain('two-lines.ts (2 lines, 7 chars, ~2 tokens)');
       expect(result).toContain('top extensions');
       expect(result).toContain('.txt: 3 files');
       expect(result).toContain('.md: 1 file');
@@ -168,7 +172,7 @@ describe('fs-tree module', () => {
       expect(result).toBeTypeOf('string');
       if (result === null) throw new Error('Expected tree result');
 
-      const largestFilesStart = result.indexOf('├── largest files');
+      const largestFilesStart = result.indexOf('├── largest files by chars');
       const topExtensionsStart = result.indexOf('└── top extensions');
       const largestFilesSection = result.slice(largestFilesStart, topExtensionsStart);
       const largestFileRows = largestFilesSection
@@ -176,14 +180,14 @@ describe('fs-tree module', () => {
         .filter(line => line.startsWith('│   '));
 
       expect(largestFileRows).toHaveLength(5);
-      expect(largestFilesSection).toContain('six.ts (6 lines)');
-      expect(largestFilesSection).toContain('five.ts (5 lines)');
-      expect(largestFilesSection).toContain('four.ts (4 lines)');
-      expect(largestFilesSection).toContain('three.ts (3 lines)');
-      expect(largestFilesSection).toContain('two.ts (2 lines)');
-      expect(largestFilesSection).not.toContain('one.ts (1 line)');
-      expect(result).toContain('yarn.lock (7 lines)');
-      expect(result).toContain('package-lock.json (6 lines)');
+      expect(largestFilesSection).toContain('six.ts (6 lines, 27 chars, ~7 tokens)');
+      expect(largestFilesSection).toContain('five.ts (5 lines, 23 chars, ~6 tokens)');
+      expect(largestFilesSection).toContain('four.ts (4 lines, 18 chars, ~5 tokens)');
+      expect(largestFilesSection).toContain('three.ts (3 lines, 13 chars, ~4 tokens)');
+      expect(largestFilesSection).toContain('two.ts (2 lines, 7 chars, ~2 tokens)');
+      expect(largestFilesSection).not.toContain('one.ts (1 line, 3 chars, ~1 token)');
+      expect(result).toContain('yarn.lock (7 lines, 33 chars, ~9 tokens)');
+      expect(result).toContain('package-lock.json (6 lines, 27 chars, ~7 tokens)');
       expect(largestFilesSection).not.toContain('yarn.lock');
       expect(largestFilesSection).not.toContain('package-lock.json');
     });
@@ -194,7 +198,7 @@ describe('fs-tree module', () => {
       expect(result).toBeTypeOf('string');
       expect(result).toContain('\n\nsummary\n');
       expect(result).toContain('directories: 1');
-      expect(result).toContain('files and lines: skipped (--only-folder)');
+      expect(result).toContain('files and text stats: skipped (--only-folder)');
       expect(result).not.toContain('total lines:');
     });
 
@@ -204,7 +208,7 @@ describe('fs-tree module', () => {
       const result = tree({ directory: tempDir, color: true });
 
       expect(result).toBeTypeOf('string');
-      expect(result).toContain('short.ts \x1b[2m(2 lines)\x1b[0m');
+      expect(result).toContain('short.ts \x1b[2m(2 lines, 7 chars, ~2 tokens)\x1b[0m');
     });
 
     it('should handle onlyFolder option', () => {

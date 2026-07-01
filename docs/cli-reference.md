@@ -27,14 +27,19 @@ tree [options] [path]
 | `-h`, `--help` | Print help. | Both |
 
 Directory output ends with a compact summary of the displayed tree: directories, files, total lines,
-median lines per file, largest files, and top extensions.
+total chars, approximate tokens, median file size, max line length, largest files by chars, and top extensions.
 The largest-file ranking skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
 `pnpm-lock.yaml`, and `bun.lockb`.
 
 Related tree output also ends with a context summary for the related set: unique files shown,
-related files, total lines, median file size, deepest relationship, unresolved references when
-present, and the five largest files. The `--summary` flag is separate: it switches the related
+related files, total lines, total chars, approximate tokens, median file size, deepest relationship,
+unresolved references when present, and the five largest files by chars. The `--summary` flag is separate: it switches the related
 view to a compact direct/transitive layout instead of the nested tree.
+
+Every rendered CLI output ends with `output context`, which measures the visible command output itself:
+characters and approximate tokens after stripping terminal color escape sequences. This is the cost of
+pasting the tree result into an agent, not the cost of the source files. It does not include shell prompts
+or wrapper output from tools such as `yarn`.
 
 ## Examples
 

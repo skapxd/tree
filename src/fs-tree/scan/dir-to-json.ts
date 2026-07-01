@@ -7,45 +7,34 @@ import { sortDir } from './sort-dir';
 import { withGitIgnoreForDir } from '@/fs-tree/ignore/with-git-ignore-for-dir';
 import { type IgnoreState } from '@/fs-tree/ignore/gitignore-helpers';
 import { recordTreeDirectory, recordTreeFile, type TreeSummary } from '@/fs-tree/summary';
+import {
+  createTextStats,
+  formatTextStatsLabel,
+  type TextStats,
+} from '@/shared/text-stats';
 
 export type TreeStructure = { [key: string]: (string | TreeStructure)[] } | string;
-
-const LINE_BREAK_BYTE = 10;
 
 const dirToJsonHelpers = {
   absorbRecoverableBoundaryError(error: unknown): void {
     void error;
   },
 
-  countFileLines(filePath: string): number | null {
-    const result = trySafe(() => fs.readFileSync(filePath));
+  getFileTextStats(filePath: string): TextStats | null {
+    const result = trySafe(() => fs.readFileSync(filePath, 'utf8'));
     if (Result.isErr(result)) {
       dirToJsonHelpers.absorbRecoverableBoundaryError(result.error);
       return null;
     }
 
-    const buffer = result.value;
-    const isEmptyFile = buffer.length === 0;
-    if (isEmptyFile) return 0;
-
-    let lineBreaks = 0;
-    for (const byte of buffer) {
-      const isLineBreak = byte === LINE_BREAK_BYTE;
-      if (isLineBreak) {
-        lineBreaks += 1;
-      }
-    }
-
-    const lastByte = buffer[buffer.length - 1];
-    const endsWithLineBreak = lastByte === LINE_BREAK_BYTE;
-    return endsWithLineBreak ? lineBreaks : lineBreaks + 1;
+    return createTextStats(result.value);
   },
 
-  formatFileName(filePath: string, lines: number | null): string {
+  formatFileName(filePath: string, stats: TextStats | null): string {
     const fileName = path.basename(filePath);
-    if (lines === null) return fileName;
+    if (stats === null) return fileName;
 
-    return `${fileName} (${lines} ${lines === 1 ? 'line' : 'lines'})`;
+    return `${fileName} (${formatTextStatsLabel(stats)})`;
   },
 
   recordDirectory(summary: TreeSummary | undefined, dirPath: string): void {
@@ -57,10 +46,10 @@ const dirToJsonHelpers = {
     recordTreeDirectory(summary);
   },
 
-  recordFile(summary: TreeSummary | undefined, filePath: string, lines: number | null): void {
+  recordFile(summary: TreeSummary | undefined, filePath: string, stats: TextStats | null): void {
     if (summary === undefined) return;
 
-    recordTreeFile(summary, filePath, lines);
+    recordTreeFile(summary, filePath, stats);
   },
 
   readDir(dirPath: string): string[] | null {
@@ -126,10 +115,10 @@ export function dirToJson(
   if (isSpecialFile) return path.basename(dirPath);
 
   if (!isDirectory) {
-    const lines = dirToJsonHelpers.countFileLines(dirPath);
-    dirToJsonHelpers.recordFile(summary, dirPath, lines);
+    const stats = dirToJsonHelpers.getFileTextStats(dirPath);
+    dirToJsonHelpers.recordFile(summary, dirPath, stats);
 
-    return dirToJsonHelpers.formatFileName(dirPath, lines);
+    return dirToJsonHelpers.formatFileName(dirPath, stats);
   }
 
   dirToJsonHelpers.recordDirectory(summary, dirPath);

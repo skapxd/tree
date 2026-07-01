@@ -1,6 +1,6 @@
 import { formatFileLabel } from '@/fs-tree/summary/format-file-label';
-import { formatLineLabel } from '@/fs-tree/summary/format-line-label';
 import { type TreeSummary } from '@/fs-tree/summary/types';
+import { formatTextStatsLabel } from '@/shared/text-stats';
 import { getTopExtensions } from './get-top-extensions';
 import { type SummarySection } from './types';
 
@@ -9,14 +9,14 @@ export function createSections(summary: TreeSummary): SummarySection[] {
   if (shouldSkipSections) return [];
 
   const largestFiles = summary.largestFiles.map(file => {
-    return `${file.path} (${formatLineLabel(file.lines)})`;
+    return `${file.path} (${formatTextStatsLabel(file)})`;
   });
   const extensions = getTopExtensions(summary).map(extension => {
     return `${extension.extension}: ${formatFileLabel(extension.count)}`;
   });
 
   return [
-    { label: 'largest files', children: largestFiles },
+    { label: 'largest files by chars', children: largestFiles },
     { label: 'top extensions', children: extensions },
   ].filter(section => section.children.length > 0);
 }

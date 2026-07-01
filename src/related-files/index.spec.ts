@@ -393,12 +393,16 @@ describe('related-files module', () => {
     expect(treeOutput).toContain('files shown: 4 files');
     expect(treeOutput).toContain('related files: 3 files');
     expect(treeOutput).toContain('total lines: 7 lines');
+    expect(treeOutput).toContain('total chars: 180 chars');
+    expect(treeOutput).toContain('estimated tokens: ~45 tokens');
     expect(treeOutput).toContain('median lines per file: 2 lines');
+    expect(treeOutput).toContain('median chars per file: 50 chars');
+    expect(treeOutput).toContain('max line length: 31 chars');
     expect(treeOutput).toContain('max relationship depth: 2');
-    expect(treeOutput).toContain('largest files');
-    expect(treeOutput).toContain('src/controller.ts (2 lines)');
-    expect(treeOutput).toContain('src/module.ts (2 lines)');
-    expect(treeOutput).toContain('src/use-case.ts (2 lines)');
+    expect(treeOutput).toContain('largest files by chars');
+    expect(treeOutput).toContain('src/controller.ts (2 lines, 53 chars, ~14 tokens)');
+    expect(treeOutput).toContain('src/module.ts (2 lines, 51 chars, ~13 tokens)');
+    expect(treeOutput).toContain('src/use-case.ts (2 lines, 48 chars, ~12 tokens)');
   });
 
   it('renders notes for entrypoints and explicit direct-depth scans', () => {
@@ -435,8 +439,8 @@ describe('related-files module', () => {
     });
     const cyclicOutput = formatRelatedFilesTree(cyclicResult);
 
-    expect(cyclicOutput).toContain('src/a.ts (cycle)');
-    expect(cyclicOutput).toContain('src/c.ts (seen)');
+    expect(cyclicOutput).toContain('src/a.ts (3 lines, 51 chars, ~13 tokens) (cycle)');
+    expect(cyclicOutput).toContain('src/c.ts (2 lines, 37 chars, ~10 tokens) (seen)');
     expect(cyclicOutput).not.toContain('imported by');
 
     const leafResult = getRelatedFiles({
@@ -553,7 +557,7 @@ describe('related-files module', () => {
     ]);
     expect(output).toContain('links (2)');
     expect(output).toContain('docs/index.md - Docs');
-    expect(output).toContain('docs/api.md (1 line)');
+    expect(output).toContain('docs/api.md (1 line, 6 chars, ~2 tokens)');
     expect(output).toContain('title: API');
     expect(output).toContain('linked by (0)');
     expect(output).not.toContain('docs/diagram.md');
@@ -585,24 +589,30 @@ describe('related-files module', () => {
     const treeOutput = formatRelatedFilesTree(result);
     const summaryOutput = formatRelatedFilesSummary(result);
 
-    expect(treeOutput).toContain('Related files for docs/index.md - Docs Index (2 lines)');
-    expect(treeOutput).toContain('docs/guide.md (1 line)');
+    expect(treeOutput).toContain(
+      'Related files for docs/index.md - Docs Index (2 lines, 35 chars, ~9 tokens)'
+    );
+    expect(treeOutput).toContain('docs/guide.md (1 line, 30 chars, ~8 tokens)');
     expect(treeOutput).toContain('title: Guide Docs');
     expect(treeOutput).toContain('link source: docs/index.md:2 "Guide"');
     expect(treeOutput).toContain(
-      'docs/index.md (2 lines) (cycle)'
+      'docs/index.md (2 lines, 35 chars, ~9 tokens) (cycle)'
     );
     expect(treeOutput).toContain('link source: docs/guide.md:1 "Docs"');
     expect(treeOutput).toContain('\n\nsummary\n');
     expect(treeOutput).toContain('files shown: 2 files');
     expect(treeOutput).toContain('related files: 1 file');
     expect(treeOutput).toContain('total lines: 3 lines');
+    expect(treeOutput).toContain('total chars: 65 chars');
+    expect(treeOutput).toContain('estimated tokens: ~17 tokens');
     expect(treeOutput).toContain('median lines per file: 2 lines');
+    expect(treeOutput).toContain('median chars per file: 33 chars');
+    expect(treeOutput).toContain('max line length: 29 chars');
     expect(treeOutput).toContain('max relationship depth: 1');
-    expect(treeOutput).toContain('largest files');
-    expect(treeOutput).toContain('docs/index.md (2 lines)');
-    expect(treeOutput).toContain('docs/guide.md (1 line)');
-    expect(summaryOutput).toContain('docs/guide.md - Guide Docs (1 line)');
+    expect(treeOutput).toContain('largest files by chars');
+    expect(treeOutput).toContain('docs/index.md (2 lines, 35 chars, ~9 tokens)');
+    expect(treeOutput).toContain('docs/guide.md (1 line, 30 chars, ~8 tokens)');
+    expect(summaryOutput).toContain('docs/guide.md - Guide Docs (1 line, 30 chars, ~8 tokens)');
   });
 
   it('supports root-relative markdown links and reports unresolved local markdown links', () => {
@@ -629,7 +639,7 @@ describe('related-files module', () => {
       },
     ]);
     expect(output).toContain('unresolved local links (1)');
-    expect(output).toContain('docs/index.md (2 lines) -> ./missing.md');
+    expect(output).toContain('docs/index.md (2 lines, 48 chars, ~12 tokens) -> ./missing.md');
     expect(output).toContain('link source: docs/index.md:2 "Missing"');
   });
 

@@ -1,24 +1,35 @@
 import { type RelatedFilesResult } from '@/related-files/types';
+import {
+  getEstimatedTokenCount,
+  getMedianCount,
+} from '@/shared/text-stats';
 import { collectSummaryFiles } from './collect-summary-files';
 import { getLargestFiles } from './get-largest-files';
-import { getLineCountEntries } from './get-line-count-entries';
 import { getMaxDepth } from './get-max-depth';
-import { getMedianLineCount } from './get-median-line-count';
+import { getTextStatEntries } from './get-text-stat-entries';
 import { type RelatedContextSummary } from './types';
 
 export function createRelatedContextSummary(result: RelatedFilesResult): RelatedContextSummary {
   const files = collectSummaryFiles(result);
-  const lineCountEntries = getLineCountEntries(files);
-  const lineCounts = lineCountEntries.map(entry => entry.lines);
+  const textStatEntries = getTextStatEntries(files);
+  const lineCounts = textStatEntries.map(entry => entry.lines);
+  const characterCounts = textStatEntries.map(entry => entry.characters);
+  const totalCharacterCount = characterCounts.reduce((total, characters) => {
+    return total + characters;
+  }, 0);
 
   return {
     filesShown: files.length,
     relatedFiles: files.length - 1,
     totalLineCount: lineCounts.reduce((total, lines) => total + lines, 0),
-    medianLineCount: getMedianLineCount(lineCounts),
+    totalCharacterCount,
+    estimatedTokenCount: getEstimatedTokenCount(totalCharacterCount),
+    medianLineCount: getMedianCount(lineCounts),
+    medianCharacterCount: getMedianCount(characterCounts),
+    maxLineLength: Math.max(0, ...textStatEntries.map(entry => entry.maxLineLength)),
     maxDepth: getMaxDepth(result),
-    unreadableFiles: files.length - lineCountEntries.length,
+    unreadableFiles: files.length - textStatEntries.length,
     unresolvedCount: result.unresolved.length,
-    largestFiles: getLargestFiles(lineCountEntries),
+    largestFiles: getLargestFiles(textStatEntries),
   };
 }

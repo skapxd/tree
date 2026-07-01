@@ -2,17 +2,19 @@
 
 [![CI](https://github.com/skapxd/tree/actions/workflows/ci.yml/badge.svg)](https://github.com/skapxd/tree/actions/workflows/ci.yml)
 [![npm version](https://badge.fury.io/js/@skapxd%2Ftree.svg)](https://badge.fury.io/js/@skapxd%2Ftree)
+[![skills.sh](https://skills.sh/b/skapxd/tree)](https://skills.sh/skapxd/tree)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Project structure and relationship visualizer for codebases, docs, and AI-agent context.
 
 `@skapxd/tree` gives you three useful views:
 
-- Directory tree with line counts.
+- Directory tree with line, character, and token-estimate counts.
 - File outline for supported source and Markdown files.
 - Related-file graph for local imports and local Markdown links.
 
 It is optimized for quick human inspection and for AI agents that need bounded, high-signal context before editing.
+Every rendered CLI output also reports the approximate cost of pasting that output into an agent.
 
 ## Quick Start
 
@@ -39,6 +41,20 @@ npm install -g @skapxd/tree
 tree ./src
 ```
 
+## Agent Skill
+
+Install the reusable agent skill from this repository:
+
+```bash
+npx skills add skapxd/tree --skill skapxd-tree
+```
+
+For Codex as a global skill:
+
+```bash
+npx skills add skapxd/tree --skill skapxd-tree -g -a codex -y
+```
+
 ## Directory Tree Mode
 
 Point the command to a directory to print a compact tree.
@@ -53,31 +69,43 @@ Example:
 
 ```text
 src/
-├── index.ts (2 lines)
-├── cli.ts (120 lines)
+├── index.ts (2 lines, 64 chars, ~16 tokens)
+├── cli.ts (120 lines, 8,400 chars, ~2,100 tokens)
 └── file-tree/
-    ├── index.ts (45 lines)
+    ├── index.ts (45 lines, 2,700 chars, ~675 tokens)
     └── parsers/
         └── tsx/
-            └── index.ts (241 lines)
+            └── index.ts (241 lines, 16,200 chars, ~4,050 tokens)
 
 summary
-├── directories: 2
-├── files: 3
+├── directories: 3
+├── files: 4
 ├── total lines: 408 lines
-├── median lines per file: 120 lines
-├── largest files
-│   ├── file-tree/parsers/tsx/index.ts (241 lines)
-│   ├── cli.ts (120 lines)
-│   └── file-tree/index.ts (45 lines)
+├── total chars: 27,364 chars
+├── estimated tokens: ~6,841 tokens
+├── median lines per file: 83 lines
+├── median chars per file: 5,550 chars
+├── max line length: 160 chars
+├── largest files by chars
+│   ├── file-tree/parsers/tsx/index.ts (241 lines, 16,200 chars, ~4,050 tokens)
+│   ├── cli.ts (120 lines, 8,400 chars, ~2,100 tokens)
+│   ├── file-tree/index.ts (45 lines, 2,700 chars, ~675 tokens)
+│   └── index.ts (2 lines, 64 chars, ~16 tokens)
 └── top extensions
-    └── .ts: 3 files
+    └── .ts: 4 files
+
+output context
+└── command output: 1,245 chars, ~312 tokens
 ```
 
 The directory scan respects `.gitignore` and filters common noise such as `.git` and `.DS_Store`.
 The final summary counts the visible tree only, so ignored files and directories are not included.
-`largest files` skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
+Character counts use file text length, and token counts are an approximate `chars / 4` estimate for
+code-agent context planning. `largest files by chars` skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
 `pnpm-lock.yaml`, and `bun.lockb` so the outlier list stays useful for code review.
+The final `output context` block measures the visible CLI output itself, including that block, so
+agents can estimate the cost of pasting the command result into context. It does not include shell prompts,
+`yarn` wrapper output, or terminal color escape sequences.
 
 ## File Outline Mode
 
@@ -161,13 +189,13 @@ For Markdown files, the labels switch to document language:
 - `linked by`: local Markdown files that link to the target document.
 
 ```text
-Related files for docs/index.md - Documentation Index (24 lines)
+Related files for docs/index.md - Documentation Index (24 lines, 1,250 chars, ~313 tokens)
 ├── links (1)
-│   └── docs/guide.md (68 lines)
+│   └── docs/guide.md (68 lines, 4,900 chars, ~1,225 tokens)
 │       ├── title: User Guide
 │       └── link source: docs/index.md:12 "Guide"
 └── linked by (1)
-    └── README.md (260 lines)
+    └── README.md (260 lines, 15,600 chars, ~3,900 tokens)
         ├── title: @skapxd/tree
         └── link source: README.md:253 "Documentation"
 
@@ -175,12 +203,19 @@ summary
 ├── files shown: 3 files
 ├── related files: 2 files
 ├── total lines: 352 lines
+├── total chars: 21,750 chars
+├── estimated tokens: ~5,438 tokens
 ├── median lines per file: 68 lines
+├── median chars per file: 4,900 chars
+├── max line length: 140 chars
 ├── max relationship depth: 1
-└── largest files
-    ├── README.md (260 lines)
-    ├── docs/guide.md (68 lines)
-    └── docs/index.md (24 lines)
+└── largest files by chars
+    ├── README.md (260 lines, 15,600 chars, ~3,900 tokens)
+    ├── docs/guide.md (68 lines, 4,900 chars, ~1,225 tokens)
+    └── docs/index.md (24 lines, 1,250 chars, ~313 tokens)
+
+output context
+└── command output: 1,740 chars, ~435 tokens
 ```
 
 The full related tree ends with a context summary so agents can judge the size of

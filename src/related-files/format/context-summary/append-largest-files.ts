@@ -9,7 +9,7 @@ export function appendLargestFiles(
   const lacksLargestFiles = largestFiles.length === 0;
   if (lacksLargestFiles) return;
 
-  lines.push('└── largest files');
+  lines.push('└── largest files by chars');
   largestFiles.forEach((file, index) => {
     const isLast = index === largestFiles.length - 1;
     lines.push(`    ${isLast ? '└──' : '├──'} ${formatSummaryFile(root, file)}`);

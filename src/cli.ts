@@ -4,8 +4,9 @@ import { Result, trySafe } from '@skapxd/result';
 import { program } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
-import { getParser, readFile, showSingleFileOutline } from './file-tree';
+import { getParser, readFile, formatSingleFileOutline } from './file-tree';
 import { tree } from './fs-tree';
+import { appendOutputContextSummary } from './shared/output-context';
 import {
   formatRelatedFilesSummary,
   formatRelatedFilesTree,
@@ -47,6 +48,10 @@ const cli = {
     return new RegExp(ignorePatterns.join('|'));
   },
 
+  canColorOutput(exportPath: string | undefined): boolean {
+    return cli.shouldColorOutput() && exportPath === undefined;
+  },
+
   createRelatedOutput(targetPath: string, options: CliOptions): string {
     const maxDepth = cli.parseRelatedDepth(options.depth);
     const relatedOptions = {
@@ -58,7 +63,7 @@ const cli = {
     };
     const relatedFiles = getRelatedFiles(relatedOptions);
     const formatOptions = {
-      color: cli.shouldColorOutput() && options.exportPath === undefined,
+      color: cli.canColorOutput(options.exportPath),
     };
     const shouldRenderSummary = options.summary && !options.tree;
 
@@ -89,7 +94,7 @@ const cli = {
       directory: targetPath,
       ignore: ignoreRegex,
       onlyFolder: options.onlyFolder,
-      color: cli.shouldColorOutput() && options.exportPath === undefined,
+      color: cli.canColorOutput(options.exportPath),
       includeSummary: true,
     });
     const lacksDirectoryOutput = output === null;
@@ -99,7 +104,7 @@ const cli = {
       process.exit(1);
     }
 
-    console.log(output);
+    cli.writeOrPrint(output, undefined, cli.canColorOutput(options.exportPath));
 
     const shouldExport = options.exportPath !== undefined;
     if (!shouldExport) return;
@@ -111,7 +116,7 @@ const cli = {
       color: false,
       includeSummary: true,
     });
-    cli.writeOrPrint(exportOutput ?? output, options.exportPath);
+      cli.writeOrPrint(exportOutput ?? output, options.exportPath, false);
   },
 
   handleFileTarget(targetPath: string, options: CliOptions): void {
@@ -119,14 +124,15 @@ const cli = {
       const hasRelatedMode = cli.hasRelatedOption(options.related);
       if (hasRelatedMode) {
         const output = cli.createRelatedOutput(targetPath, options);
-        cli.writeOrPrint(output, options.exportPath);
+        cli.writeOrPrint(output, options.exportPath, cli.canColorOutput(options.exportPath));
         return;
       }
 
       const content = readFile(targetPath);
       const parser = getParser(targetPath);
       const { lines, sections } = parser.parse(content);
-      showSingleFileOutline(targetPath, lines, sections);
+      const output = formatSingleFileOutline(targetPath, lines, sections);
+      cli.writeOrPrint(output, options.exportPath, cli.canColorOutput(options.exportPath));
     });
 
     if (Result.isErr(result)) {
@@ -227,14 +233,15 @@ const cli = {
     return process.stdout.isTTY === true;
   },
 
-  writeOrPrint(output: string, exportPath: string | undefined): void {
+  writeOrPrint(output: string, exportPath: string | undefined, color = false): void {
+    const outputWithContextSummary = appendOutputContextSummary(output, { color });
     const shouldPrint = exportPath === undefined;
     if (shouldPrint) {
-      console.log(output);
+      console.log(outputWithContextSummary);
       return;
     }
 
-    const writeResult = trySafe(() => fs.writeFileSync(exportPath, output));
+    const writeResult = trySafe(() => fs.writeFileSync(exportPath, outputWithContextSummary));
     if (Result.isErr(writeResult)) {
       cli.printCliError(writeResult.error);
       process.exit(1);

@@ -1,0 +1,1 @@
+export const TOKEN_CHARACTER_ESTIMATE = 4;

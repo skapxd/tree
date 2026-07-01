@@ -17,7 +17,7 @@ const characters = {
   last: '└── ',
 };
 
-const LINE_COUNT_SUFFIX_REGEX = /^(.*) \((\d+ lines?)\)$/;
+const FILE_METADATA_SUFFIX_REGEX = /^(.*) \(([^()]*)\)$/;
 const ANSI_DIM = '\x1b[2m';
 const ANSI_RESET = '\x1b[0m';
 
@@ -27,16 +27,16 @@ const generateTreeStringHelpers = {
   },
 
   formatFileName(name: string, color = false): string {
-    const match = name.match(LINE_COUNT_SUFFIX_REGEX);
+    const match = name.match(FILE_METADATA_SUFFIX_REGEX);
     if (match === null) return name;
 
     const fileName = match[1];
-    const lineCount = match[2];
-    const lacksLineCountMatch = fileName === undefined || lineCount === undefined;
-    if (lacksLineCountMatch) return name;
+    const metadata = match[2];
+    const lacksMetadataMatch = fileName === undefined || metadata === undefined;
+    if (lacksMetadataMatch) return name;
 
-    const lineCountSuffix = `(${lineCount})`;
-    return `${fileName} ${color ? `${ANSI_DIM}${lineCountSuffix}${ANSI_RESET}` : lineCountSuffix}`;
+    const metadataSuffix = `(${metadata})`;
+    return `${fileName} ${color ? `${ANSI_DIM}${metadataSuffix}${ANSI_RESET}` : metadataSuffix}`;
   },
 
   getBranch(isRoot: boolean, isLast: boolean): string {
@@ -106,7 +106,7 @@ export function generateTreeString(structure: TreeStructure, options: DrawOption
   generateTreeStringHelpers.drawDirTree(context, rootName, children, '', true, true);
 
   if (options.summary !== undefined) {
-    context.lines.push('', formatTreeSummary(options.summary));
+    context.lines.push('', formatTreeSummary(options.summary, { color: options.color === true }));
   }
 
   return context.lines.join('\n');

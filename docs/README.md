@@ -2,7 +2,7 @@
 
 `@skapxd/tree` gives a compact view of a project without reading every file. It has three main modes:
 
-- Directory tree: show folders and files with line counts.
+- Directory tree: show folders and files with line, character, and token-estimate counts.
 - File outline: show imports, symbols, functions, classes, headings, and Astro/template structure.
 - Related files: show local code dependencies and local Markdown links around a target file.
 

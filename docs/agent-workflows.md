@@ -2,6 +2,20 @@
 
 Use `tree -r` before editing when the task starts from one known file and the surrounding impact is unclear.
 
+## Install The Skill
+
+Install the reusable agent skill from the repository:
+
+```bash
+npx skills add skapxd/tree --skill skapxd-tree
+```
+
+For Codex as a global skill:
+
+```bash
+npx skills add skapxd/tree --skill skapxd-tree -g -a codex -y
+```
+
 ## When To Use
 
 Use related files mode for:

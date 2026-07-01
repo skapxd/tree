@@ -37,13 +37,13 @@ For Markdown files, the labels switch to document language:
 - `linked by`: local Markdown files that link to the target document.
 
 ```text
-Related files for docs/index.md - Documentation Index (24 lines)
+Related files for docs/index.md - Documentation Index (24 lines, 1,250 chars, ~313 tokens)
 ├── links (1)
-│   └── docs/guide.md (68 lines)
+│   └── docs/guide.md (68 lines, 4,900 chars, ~1,225 tokens)
 │       ├── title: User Guide
 │       └── link source: docs/index.md:12 "Guide"
 └── linked by (1)
-    └── README.md (260 lines)
+    └── README.md (260 lines, 15,600 chars, ~3,900 tokens)
         ├── title: @skapxd/tree
         └── link source: README.md:253 "Documentation"
 
@@ -51,17 +51,26 @@ summary
 ├── files shown: 3 files
 ├── related files: 2 files
 ├── total lines: 352 lines
+├── total chars: 21,750 chars
+├── estimated tokens: ~5,438 tokens
 ├── median lines per file: 68 lines
+├── median chars per file: 4,900 chars
+├── max line length: 140 chars
 ├── max relationship depth: 1
-└── largest files
-    ├── README.md (260 lines)
-    ├── docs/guide.md (68 lines)
-    └── docs/index.md (24 lines)
+└── largest files by chars
+    ├── README.md (260 lines, 15,600 chars, ~3,900 tokens)
+    ├── docs/guide.md (68 lines, 4,900 chars, ~1,225 tokens)
+    └── docs/index.md (24 lines, 1,250 chars, ~313 tokens)
+
+output context
+└── command output: 1,740 chars, ~435 tokens
 ```
 
 The final `summary` block measures the visible context: unique files, total lines,
-median file size, deepest relationship, unresolved local references when present,
-and the five largest files in the related set.
+total chars, approximate tokens, median file size, deepest relationship, unresolved local references
+when present, and the five largest files by chars in the related set.
+The final `output context` block measures the visible command output itself, including the summary and
+the output context block, so agents can judge the cost of pasting this result into context.
 
 ## Supported Targets
 
@@ -104,18 +113,18 @@ Broken local links are shown as `unresolved local links`.
 Markdown tree nodes keep the file path and line count on the file row. The first available heading is rendered below the file as `title:` so it is not confused with the path:
 
 ```text
-docs/agent-workflows.md (57 lines)
+docs/agent-workflows.md (57 lines, 3,800 chars, ~950 tokens)
 └── title: AI-Agent Workflow
 ```
 
 Markdown edges render the source link text or reference label below the file as `link source:`:
 
 ```text
-docs/guide.md (68 lines)
+docs/guide.md (68 lines, 4,900 chars, ~1,225 tokens)
 ├── title: User Guide
 └── link source: docs/index.md:12 "Guide"
 
-docs/index.md (24 lines) -> ./missing.md
+docs/index.md (24 lines, 1,250 chars, ~313 tokens) -> ./missing.md
 └── link source: docs/index.md:18 "Missing"
 ```
 

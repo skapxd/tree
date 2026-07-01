@@ -87,7 +87,7 @@ export function formatRelatedFilesTree(
     group.render(isLast ? '    ' : '│   ');
   });
 
-  lines.push('', formatRelatedContextSummary(result));
+  lines.push('', formatRelatedContextSummary(result, { color: options.color === true }));
 
   return lines.join('\n');
 }

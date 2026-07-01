@@ -7,10 +7,13 @@ export function createTreeSummary(rootPath: string, onlyFolder: boolean): TreeSu
     directoryCount: 0,
     fileCount: 0,
     totalLineCount: 0,
+    totalCharacterCount: 0,
+    maxLineLength: 0,
     unreadableFileCount: 0,
     onlyFolder,
     extensionCounts: new Map(),
     lineCounts: [],
+    characterCounts: [],
     largestFiles: [],
   };
 }

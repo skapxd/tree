@@ -1,6 +1,6 @@
 import { formatProjectPath } from '@/related-files/shared/path';
 import { type RelatedFormatOptions } from '@/related-files/types';
-import { formatFileLineCountLabel } from './format-file-line-count-label';
+import { formatFileTextStatsLabel } from './format-file-text-stats-label';
 import { getMarkdownTitle } from './get-markdown-title';
 
 export function formatFileLabel(
@@ -10,9 +10,9 @@ export function formatFileLabel(
 ): string {
   const relativePath = formatProjectPath(root, file);
   const markdownTitle = getMarkdownTitle(file);
-  const lineCountLabel = formatFileLineCountLabel(file, options);
+  const textStatsLabel = formatFileTextStatsLabel(file, options);
 
   return markdownTitle
-    ? `${relativePath} - ${markdownTitle}${lineCountLabel}`
-    : `${relativePath}${lineCountLabel}`;
+    ? `${relativePath} - ${markdownTitle}${textStatsLabel}`
+    : `${relativePath}${textStatsLabel}`;
 }
