@@ -5,7 +5,7 @@ import { isSupportedFile } from '@/related-files/shared/path';
 import { absorbRecoverableBoundaryError } from '@/related-files/shared/safety';
 
 export function tryFile(filePath: string): string | null {
-  const result = trySafe(() => fs.statSync(filePath));
+  const result = trySafe(() => fs.lstatSync(filePath));
   if (Result.isErr(result)) {
     absorbRecoverableBoundaryError(result.error);
     return null;

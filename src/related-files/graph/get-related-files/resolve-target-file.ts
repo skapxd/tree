@@ -2,6 +2,10 @@ import path from 'node:path';
 import { resolveCandidate } from '@/related-files/resolve/resolve-candidate';
 import { isInside } from '@/related-files/shared/path';
 import { type DependencyGraph } from '@/related-files/types';
+import {
+  formatSymbolicLinkError,
+  isSymbolicLinkPath,
+} from '@/shared/symlink';
 
 export function resolveTargetFile(
   filePath: string,
@@ -9,6 +13,11 @@ export function resolveTargetFile(
   graph: DependencyGraph
 ): string {
   const directFile = path.resolve(filePath);
+  const isSymbolicLinkTarget = isSymbolicLinkPath(directFile);
+  if (isSymbolicLinkTarget) {
+    throw new Error(formatSymbolicLinkError(directFile));
+  }
+
   const resolved = resolveCandidate(directFile) ?? directFile;
   const isOutsideRoot = !isInside(root, resolved) && resolved !== root;
 

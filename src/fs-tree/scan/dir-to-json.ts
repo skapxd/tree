@@ -12,6 +12,7 @@ import {
   formatTextStatsLabel,
   type TextStats,
 } from '@/shared/text-stats';
+import { formatSymbolicLinkLabel } from '@/shared/symlink';
 
 export type TreeStructure = { [key: string]: (string | TreeStructure)[] } | string;
 
@@ -111,6 +112,9 @@ export function dirToJson(
 
   const isDirectory = stats.isDirectory();
   const isFile = stats.isFile();
+  const isSymbolicLink = stats.isSymbolicLink();
+  if (isSymbolicLink) return formatSymbolicLinkLabel(dirPath);
+
   const isSpecialFile = !isDirectory && !isFile;
   if (isSpecialFile) return path.basename(dirPath);
 

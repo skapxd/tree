@@ -44,6 +44,7 @@ output context
 
 The summary describes only the displayed tree. Ignored paths are not counted, and `--only-folder`
 skips file text stats.
+Symbolic links are rendered as `name -> target`; they are not followed and are not counted as files.
 Character counts use file text length, and token counts are an approximate `chars / 4` estimate for
 code-agent context planning. `largest files by chars` skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
 `pnpm-lock.yaml`, and `bun.lockb`.

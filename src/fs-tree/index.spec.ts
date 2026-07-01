@@ -141,6 +141,18 @@ describe('fs-tree module', () => {
       expect(result).toContain('.ts: 1 file');
     });
 
+    it('should render symbolic links without following or counting them', () => {
+      fs.symlinkSync('link-b', path.join(tempDir, 'link-a'));
+      fs.symlinkSync('link-a', path.join(tempDir, 'link-b'));
+
+      const result = tree({ directory: tempDir, includeSummary: true });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).toContain('link-a -> link-b');
+      expect(result).toContain('link-b -> link-a');
+      expect(result).toContain('files: 3');
+    });
+
     it('should round the median line count for an even number of files', () => {
       fs.rmSync(path.join(tempDir, 'b'), { recursive: true, force: true });
       fs.rmSync(path.join(tempDir, 'a.txt'));

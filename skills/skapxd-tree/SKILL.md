@@ -39,6 +39,7 @@ npx --yes @skapxd/tree@1.2.1 docs/index.md -r
 - Directory summaries count visible, non-ignored files only.
 - `largest files by chars` is the main signal for context budget.
 - `output context` is the estimated cost of pasting the command result itself into an agent.
+- Symbolic links are shown as `name -> target`; related mode does not follow them.
 - In code related mode, `imports` are dependencies and `imported by` are consumers.
 - In Markdown related mode, `links` are outgoing documents and `linked by` are backlinks.
 - `(seen)` means the file already appeared earlier in the graph.

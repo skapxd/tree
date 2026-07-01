@@ -100,6 +100,7 @@ output context
 
 The directory scan respects `.gitignore` and filters common noise such as `.git` and `.DS_Store`.
 The final summary counts the visible tree only, so ignored files and directories are not included.
+Symbolic links are displayed as `name -> target` and are not followed or counted as files.
 Character counts use file text length, and token counts are an approximate `chars / 4` estimate for
 code-agent context planning. `largest files by chars` skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
 `pnpm-lock.yaml`, and `bun.lockb` so the outlier list stays useful for code review.
@@ -220,6 +221,8 @@ output context
 
 The full related tree ends with a context summary so agents can judge the size of
 the visible graph before reading files.
+Related mode does not follow symbolic links. A symlink target passed to `-r` fails with a clear error,
+and imports that resolve only through symlinks are reported as unresolved local imports.
 
 The resolver handles:
 

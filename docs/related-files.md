@@ -71,6 +71,8 @@ total chars, approximate tokens, median file size, deepest relationship, unresol
 when present, and the five largest files by chars in the related set.
 The final `output context` block measures the visible command output itself, including the summary and
 the output context block, so agents can judge the cost of pasting this result into context.
+Related mode does not follow symbolic links. A symlink target passed to `-r` fails with a clear error,
+and imports that resolve only through symlinks are reported as unresolved local imports.
 
 ## Supported Targets
 

@@ -22,7 +22,7 @@ export function resolveCandidate(candidatePath: string): string | null {
     return resolveWithSubstitutedExtensions(candidatePath, extension);
   }
 
-  const stats = trySafe(() => fs.statSync(candidatePath));
+  const stats = trySafe(() => fs.lstatSync(candidatePath));
   if (Result.isErr(stats)) {
     absorbRecoverableBoundaryError(stats.error);
     return null;

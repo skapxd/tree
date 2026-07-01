@@ -268,7 +268,7 @@ program
   .action((dirArg: unknown, rawOptions: unknown) => {
     const options = cli.parseCliOptions(rawOptions);
     const targetPath = cli.getTargetPath(dirArg, options);
-    const statsResult = trySafe(() => fs.statSync(targetPath));
+    const statsResult = trySafe(() => fs.lstatSync(targetPath));
     const hasRelatedMode = cli.hasRelatedOption(options.related);
     const hasMissingRelatedTarget = Result.isErr(statsResult) && hasRelatedMode;
 
@@ -284,6 +284,14 @@ program
     }
 
     const isFileTarget = statsResult.value.isFile();
+    const isSymbolicLinkTarget = statsResult.value.isSymbolicLink();
+    const shouldHandleAsRelatedTarget =
+      hasRelatedMode && (isFileTarget || isSymbolicLinkTarget);
+    if (shouldHandleAsRelatedTarget) {
+      cli.handleFileTarget(targetPath, options);
+      return;
+    }
+
     if (isFileTarget) {
       cli.handleFileTarget(targetPath, options);
       return;

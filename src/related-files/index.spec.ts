@@ -226,6 +226,44 @@ describe('related-files module', () => {
     expect(result.unresolved).toEqual([]);
   });
 
+  it('does not follow symbolic links while resolving related files', () => {
+    writeProjectFile(tempDir, 'src/real.ts', 'export const real = true;\n');
+    writeProjectFile(tempDir, 'src/entry.ts', "import './link';\nexport const entry = true;\n");
+    fs.symlinkSync('real.ts', path.join(tempDir, 'src/link.ts'));
+
+    const graph = buildDependencyGraph({ root: tempDir });
+    const scannedFiles = graph.files.map(file => path.relative(tempDir, file));
+
+    expect(scannedFiles).toContain('src/real.ts');
+    expect(scannedFiles).not.toContain('src/link.ts');
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/entry.ts'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(result.imports).toEqual([]);
+    expect(result.unresolved).toEqual([
+      {
+        file: path.join(tempDir, 'src/entry.ts'),
+        specifier: './link',
+      },
+    ]);
+  });
+
+  it('rejects symbolic link targets before traversing related files', () => {
+    fs.mkdirSync(path.join(tempDir, 'src'), { recursive: true });
+    fs.symlinkSync('link-b.ts', path.join(tempDir, 'src/link-a.ts'));
+    fs.symlinkSync('link-a.ts', path.join(tempDir, 'src/link-b.ts'));
+
+    expect(() => getRelatedFiles({
+      file: path.join(tempDir, 'src/link-a.ts'),
+      root: tempDir,
+      direction: 'imports',
+    })).toThrow('Related files mode does not follow symbolic links');
+  });
+
   it('does not report path aliases that target node_modules as unresolved local imports', () => {
     writeProjectFile(
       tempDir,
