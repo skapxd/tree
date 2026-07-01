@@ -254,7 +254,7 @@ describe('fs-tree module', () => {
       expect(result).toBeTypeOf('string');
       expect(result).toContain('a.txt');
       expect(result).toContain('d.txt');
-      expect(result).toContain('b/');
+      expect(result).toContain('── b/');
     });
 
     it('should return null for a non-existent directory', () => {
@@ -265,21 +265,21 @@ describe('fs-tree module', () => {
     it('should filter with RegExp ignore option', () => {
       const result = tree({ directory: tempDir, ignore: /b/ });
       expect(result).toBeTypeOf('string');
-      expect(result).not.toContain('b/');
+      expect(result).not.toContain('── b/');
       expect(result).toContain('a.txt');
     });
 
     it('should filter with string ignore option', () => {
       const result = tree({ directory: tempDir, ignore: 'b' });
       expect(result).toBeTypeOf('string');
-      expect(result).not.toContain('b/');
+      expect(result).not.toContain('── b/');
       expect(result).toContain('a.txt');
     });
 
     it('should show only folders with onlyFolder option', () => {
       const result = tree({ directory: tempDir, onlyFolder: true });
       expect(result).toBeTypeOf('string');
-      expect(result).toContain('b/');
+      expect(result).toContain('── b/');
       expect(result).not.toContain('a.txt');
       expect(result).not.toContain('d.txt');
     });
