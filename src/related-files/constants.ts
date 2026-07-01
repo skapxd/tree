@@ -1,6 +1,7 @@
 export const SUPPORTED_EXTENSIONS = [
   '.ts',
   '.tsx',
+  '.d.ts',
   '.js',
   '.jsx',
   '.mjs',
@@ -11,6 +12,26 @@ export const SUPPORTED_EXTENSIONS = [
 ] as const;
 
 export const SUPPORTED_EXTENSION_SET = new Set<string>(SUPPORTED_EXTENSIONS);
+
+export const KNOWN_UNSUPPORTED_IMPORT_EXTENSIONS = [
+  '.avif',
+  '.css',
+  '.gif',
+  '.ico',
+  '.jpeg',
+  '.jpg',
+  '.json',
+  '.less',
+  '.png',
+  '.sass',
+  '.scss',
+  '.svg',
+  '.webp',
+] as const;
+
+export const KNOWN_UNSUPPORTED_IMPORT_EXTENSION_SET = new Set<string>(
+  KNOWN_UNSUPPORTED_IMPORT_EXTENSIONS
+);
 
 export const DEFAULT_IGNORED_NAMES = new Set([
   '.git',

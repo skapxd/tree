@@ -13,13 +13,13 @@ export function resolveCandidate(candidatePath: string): string | null {
   const extension = path.extname(candidatePath);
   const hasExplicitExtension = extension.length > 0;
 
-  if (hasExplicitExtension) {
-    return resolveWithSubstitutedExtensions(candidatePath, extension);
-  }
-
   for (const supportedExtension of SUPPORTED_EXTENSIONS) {
     const resolvedFile = tryFile(`${candidatePath}${supportedExtension}`);
     if (resolvedFile) return resolvedFile;
+  }
+
+  if (hasExplicitExtension) {
+    return resolveWithSubstitutedExtensions(candidatePath, extension);
   }
 
   const stats = trySafe(() => fs.statSync(candidatePath));

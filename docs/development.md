@@ -28,7 +28,7 @@ yarn typecheck
 yarn lint
 ```
 
-Linting uses `@skapxd/eslint-opinionated` with the package preset as a strict gate.
+Linting uses `@skapxd/lint-agent` with the package preset as a strict gate.
 
 - `yarn lint`: runs maintained source files and fails on any violation.
 - `yarn lint:full`: runs the full package preset through `skapxd-lint`.

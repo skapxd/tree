@@ -9,12 +9,14 @@ import path from 'node:path';
 import { dirToJson } from './parser';
 import { generateTreeString } from './drawer';
 import { parseIgnoreOption } from './utils';
+import { createTreeSummary } from './summary';
 
 export type TreeOptions = {
   directory: string;
   ignore?: string | RegExp;
   onlyFolder?: boolean;
   color?: boolean;
+  includeSummary?: boolean;
 };
 
 /**
@@ -29,11 +31,18 @@ export function tree(options: TreeOptions): string | null {
     : parseIgnoreOption(ignorePattern);
 
   const targetPath = path.resolve(options.directory);
+  const shouldIncludeSummary = options.includeSummary === true;
+  const summary = shouldIncludeSummary
+    ? createTreeSummary(targetPath, options.onlyFolder === true)
+    : undefined;
 
-  const structure = dirToJson(targetPath, ignoreRegex, options.onlyFolder);
+  const structure = dirToJson(targetPath, ignoreRegex, options.onlyFolder, undefined, summary);
 
   const lacksStructure = structure === null;
   if (lacksStructure) return null;
 
-  return generateTreeString(structure, { color: Boolean(options.color) });
+  return generateTreeString(structure, {
+    color: Boolean(options.color),
+    ...(summary === undefined ? {} : { summary }),
+  });
 }

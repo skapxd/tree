@@ -1,4 +1,4 @@
-import skapxd from '@skapxd/eslint-opinionated';
+import skapxd from '@skapxd/lint-agent';
 
 export default [
   {

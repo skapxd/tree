@@ -20,7 +20,24 @@ src/
     └── parsers/
         └── tsx/
             └── index.ts (241 lines)
+
+summary
+├── directories: 2
+├── files: 3
+├── total lines: 408 lines
+├── median lines per file: 120 lines
+├── largest files
+│   ├── file-tree/parsers/tsx/index.ts (241 lines)
+│   ├── cli.ts (120 lines)
+│   └── file-tree/index.ts (45 lines)
+└── top extensions
+    └── .ts: 3 files
 ```
+
+The summary describes only the displayed tree. Ignored paths are not counted, and `--only-folder`
+skips file and line totals.
+`largest files` skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
+`pnpm-lock.yaml`, and `bun.lockb`.
 
 ## Ignoring
 

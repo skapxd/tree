@@ -60,9 +60,24 @@ src/
     └── parsers/
         └── tsx/
             └── index.ts (241 lines)
+
+summary
+├── directories: 2
+├── files: 3
+├── total lines: 408 lines
+├── median lines per file: 120 lines
+├── largest files
+│   ├── file-tree/parsers/tsx/index.ts (241 lines)
+│   ├── cli.ts (120 lines)
+│   └── file-tree/index.ts (45 lines)
+└── top extensions
+    └── .ts: 3 files
 ```
 
 The directory scan respects `.gitignore` and filters common noise such as `.git` and `.DS_Store`.
+The final summary counts the visible tree only, so ignored files and directories are not included.
+`largest files` skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
+`pnpm-lock.yaml`, and `bun.lockb` so the outlier list stays useful for code review.
 
 ## File Outline Mode
 
@@ -280,7 +295,7 @@ yarn test
 yarn build
 ```
 
-Linting uses `@skapxd/eslint-opinionated` with the package preset as a strict gate:
+Linting uses `@skapxd/lint-agent` with the package preset as a strict gate:
 
 - `yarn lint`: runs ESLint on maintained source files and fails on any violation.
 - `yarn lint:full`: audits the full package preset through `skapxd-lint`.

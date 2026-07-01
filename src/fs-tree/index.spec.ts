@@ -116,6 +116,88 @@ describe('fs-tree module', () => {
       expect(result).toContain('trailing-newline.txt');
     });
 
+    it('should append a compact directory summary when requested', () => {
+      fs.writeFileSync(path.join(tempDir, 'two-lines.ts'), 'one\ntwo');
+      fs.writeFileSync(path.join(tempDir, 'README.md'), 'title\nbody\nend');
+
+      const result = tree({ directory: tempDir, includeSummary: true });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).toContain('\n\nsummary\n');
+      expect(result).toContain('directories: 1');
+      expect(result).toContain('files: 5');
+      expect(result).toContain('total lines: 8 lines');
+      expect(result).toContain('median lines per file: 1 line');
+      expect(result).toContain('largest files');
+      expect(result).toContain('README.md (3 lines)');
+      expect(result).toContain('two-lines.ts (2 lines)');
+      expect(result).toContain('top extensions');
+      expect(result).toContain('.txt: 3 files');
+      expect(result).toContain('.md: 1 file');
+      expect(result).toContain('.ts: 1 file');
+    });
+
+    it('should round the median line count for an even number of files', () => {
+      fs.rmSync(path.join(tempDir, 'b'), { recursive: true, force: true });
+      fs.rmSync(path.join(tempDir, 'a.txt'));
+      fs.rmSync(path.join(tempDir, 'd.txt'));
+      fs.writeFileSync(path.join(tempDir, 'one.ts'), 'one');
+      fs.writeFileSync(path.join(tempDir, 'four.ts'), 'one\ntwo\nthree\nfour');
+
+      const result = tree({ directory: tempDir, includeSummary: true });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).toContain('median lines per file: 3 lines');
+    });
+
+    it('should keep the five largest files in the directory summary', () => {
+      fs.rmSync(path.join(tempDir, 'b'), { recursive: true, force: true });
+      fs.rmSync(path.join(tempDir, 'a.txt'));
+      fs.rmSync(path.join(tempDir, 'd.txt'));
+      fs.writeFileSync(path.join(tempDir, 'one.ts'), 'one');
+      fs.writeFileSync(path.join(tempDir, 'two.ts'), 'one\ntwo');
+      fs.writeFileSync(path.join(tempDir, 'three.ts'), 'one\ntwo\nthree');
+      fs.writeFileSync(path.join(tempDir, 'four.ts'), 'one\ntwo\nthree\nfour');
+      fs.writeFileSync(path.join(tempDir, 'five.ts'), 'one\ntwo\nthree\nfour\nfive');
+      fs.writeFileSync(path.join(tempDir, 'six.ts'), 'one\ntwo\nthree\nfour\nfive\nsix');
+      fs.writeFileSync(path.join(tempDir, 'yarn.lock'), 'one\ntwo\nthree\nfour\nfive\nsix\nseven');
+      fs.writeFileSync(path.join(tempDir, 'package-lock.json'), 'one\ntwo\nthree\nfour\nfive\nsix');
+
+      const result = tree({ directory: tempDir, includeSummary: true });
+
+      expect(result).toBeTypeOf('string');
+      if (result === null) throw new Error('Expected tree result');
+
+      const largestFilesStart = result.indexOf('├── largest files');
+      const topExtensionsStart = result.indexOf('└── top extensions');
+      const largestFilesSection = result.slice(largestFilesStart, topExtensionsStart);
+      const largestFileRows = largestFilesSection
+        .split('\n')
+        .filter(line => line.startsWith('│   '));
+
+      expect(largestFileRows).toHaveLength(5);
+      expect(largestFilesSection).toContain('six.ts (6 lines)');
+      expect(largestFilesSection).toContain('five.ts (5 lines)');
+      expect(largestFilesSection).toContain('four.ts (4 lines)');
+      expect(largestFilesSection).toContain('three.ts (3 lines)');
+      expect(largestFilesSection).toContain('two.ts (2 lines)');
+      expect(largestFilesSection).not.toContain('one.ts (1 line)');
+      expect(result).toContain('yarn.lock (7 lines)');
+      expect(result).toContain('package-lock.json (6 lines)');
+      expect(largestFilesSection).not.toContain('yarn.lock');
+      expect(largestFilesSection).not.toContain('package-lock.json');
+    });
+
+    it('should not count file lines in the summary when only folders are requested', () => {
+      const result = tree({ directory: tempDir, onlyFolder: true, includeSummary: true });
+
+      expect(result).toBeTypeOf('string');
+      expect(result).toContain('\n\nsummary\n');
+      expect(result).toContain('directories: 1');
+      expect(result).toContain('files and lines: skipped (--only-folder)');
+      expect(result).not.toContain('total lines:');
+    });
+
     it('should dim line count metadata when color output is enabled', () => {
       fs.writeFileSync(path.join(tempDir, 'short.ts'), 'one\ntwo');
 

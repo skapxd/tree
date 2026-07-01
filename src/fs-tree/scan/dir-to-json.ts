@@ -6,6 +6,7 @@ import { isIgnoredPath } from '@/fs-tree/ignore/is-ignored-path';
 import { sortDir } from './sort-dir';
 import { withGitIgnoreForDir } from '@/fs-tree/ignore/with-git-ignore-for-dir';
 import { type IgnoreState } from '@/fs-tree/ignore/gitignore-helpers';
+import { recordTreeDirectory, recordTreeFile, type TreeSummary } from '@/fs-tree/summary';
 
 export type TreeStructure = { [key: string]: (string | TreeStructure)[] } | string;
 
@@ -40,12 +41,26 @@ const dirToJsonHelpers = {
     return endsWithLineBreak ? lineBreaks : lineBreaks + 1;
   },
 
-  formatFileName(filePath: string): string {
+  formatFileName(filePath: string, lines: number | null): string {
     const fileName = path.basename(filePath);
-    const lines = dirToJsonHelpers.countFileLines(filePath);
     if (lines === null) return fileName;
 
     return `${fileName} (${lines} ${lines === 1 ? 'line' : 'lines'})`;
+  },
+
+  recordDirectory(summary: TreeSummary | undefined, dirPath: string): void {
+    if (summary === undefined) return;
+
+    const reachedSummaryRoot = path.resolve(dirPath) === summary.rootPath;
+    if (reachedSummaryRoot) return;
+
+    recordTreeDirectory(summary);
+  },
+
+  recordFile(summary: TreeSummary | undefined, filePath: string, lines: number | null): void {
+    if (summary === undefined) return;
+
+    recordTreeFile(summary, filePath, lines);
   },
 
   readDir(dirPath: string): string[] | null {
@@ -99,15 +114,25 @@ export function dirToJson(
   dirPath: string,
   ignoreRegex: RegExp | null,
   onlyFolder?: boolean,
-  ignoreState?: IgnoreState
+  ignoreState?: IgnoreState,
+  summary?: TreeSummary
 ): TreeStructure | null {
   const stats = dirToJsonHelpers.readStats(dirPath);
   if (stats === null) return null;
 
   const isDirectory = stats.isDirectory();
+  const isFile = stats.isFile();
+  const isSpecialFile = !isDirectory && !isFile;
+  if (isSpecialFile) return path.basename(dirPath);
+
   if (!isDirectory) {
-    return stats.isFile() ? dirToJsonHelpers.formatFileName(dirPath) : path.basename(dirPath);
+    const lines = dirToJsonHelpers.countFileLines(dirPath);
+    dirToJsonHelpers.recordFile(summary, dirPath, lines);
+
+    return dirToJsonHelpers.formatFileName(dirPath, lines);
   }
+
+  dirToJsonHelpers.recordDirectory(summary, dirPath);
 
   const activeIgnoreState = withGitIgnoreForDir(
     ignoreState ?? createIgnoreState(dirPath, ignoreRegex),
@@ -123,7 +148,15 @@ export function dirToJson(
       child,
       onlyFolder
     ))
-    .map(child => dirToJson(path.join(dirPath, child), ignoreRegex, onlyFolder, activeIgnoreState))
+    .map(child => {
+      return dirToJson(
+        path.join(dirPath, child),
+        ignoreRegex,
+        onlyFolder,
+        activeIgnoreState,
+        summary
+      );
+    })
     .filter((child): child is TreeStructure => child !== null);
   const dirName = path.basename(dirPath);
   const structure: TreeStructure = {};

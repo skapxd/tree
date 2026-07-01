@@ -26,6 +26,11 @@ tree [options] [path]
 | `-V`, `--version` | Print version. | Both |
 | `-h`, `--help` | Print help. | Both |
 
+Directory output ends with a compact summary of the displayed tree: directories, files, total lines,
+median lines per file, largest files, and top extensions.
+The largest-file ranking skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
+`pnpm-lock.yaml`, and `bun.lockb`.
+
 ## Examples
 
 ```bash

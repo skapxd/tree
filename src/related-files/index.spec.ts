@@ -125,6 +125,143 @@ describe('related-files module', () => {
     ]);
   });
 
+  it('extracts supported astro inline script imports', () => {
+    writeProjectFile(tempDir, 'src/lib/client.ts', 'export const client = true;\n');
+    writeProjectFile(tempDir, 'src/lib/module.ts', 'export const module = true;\n');
+    writeProjectFile(tempDir, 'src/lib/skipped.ts', 'export const skipped = true;\n');
+    writeProjectFile(
+      tempDir,
+      'src/pages/app.astro',
+      "---\nconst title = 'App';\n---\n<script>\nimport '../lib/client';\n</script>\n<script type=\"module\">\nconst name = 'module';\nimport(`../lib/${name}`);\n</script>\n<script type=\"application/ld+json\">\nimport '../lib/skipped';\n</script>\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/pages/app.astro'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual([
+      'src/lib/client.ts',
+      'src/lib/module.ts',
+    ]);
+  });
+
+  it('resolves dynamic imports from static string expressions', () => {
+    writeProjectFile(tempDir, 'src/pages/Menu.astro', '<menu />\n');
+    writeProjectFile(tempDir, 'src/pages/Admin.astro', '<admin />\n');
+    writeProjectFile(tempDir, 'src/pages/User.astro', '<user />\n');
+    writeProjectFile(
+      tempDir,
+      'src/router.ts',
+      "const section = 'pages';\nconst menu = 'Menu';\nconst admin = './' + section + '/Admin.astro';\nconst role = isAdmin ? 'Admin' : 'User';\nimport(`./${section}/${menu}.astro`);\nimport(admin);\nimport(`./pages/${role}.astro`);\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/router.ts'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual([
+      'src/pages/Admin.astro',
+      'src/pages/Menu.astro',
+      'src/pages/User.astro',
+    ]);
+  });
+
+  it('does not resolve dynamic imports from runtime string expressions', () => {
+    writeProjectFile(tempDir, 'src/pages/Menu.astro', '<menu />\n');
+    writeProjectFile(
+      tempDir,
+      'src/router.ts',
+      "let page = 'Menu';\nimport(`./pages/${page}.astro`);\nconst runtimePage = getPage();\nimport(`./pages/${runtimePage}.astro`);\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/router.ts'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(result.imports).toEqual([]);
+  });
+
+  it('extracts import type expressions', () => {
+    writeProjectFile(tempDir, 'src/types/index.ts', 'export type Role = "admin";\n');
+    writeProjectFile(
+      tempDir,
+      'src/page.astro',
+      "---\nlet users: Array<{ role: import('@/types/index.ts').Role }> = [];\n---\n<div />\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/page.astro'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual(['src/types/index.ts']);
+  });
+
+  it('resolves declaration files from extensionless imports', () => {
+    writeProjectFile(tempDir, 'src/request/types.d.ts', 'export type Response = string;\n');
+    writeProjectFile(tempDir, 'src/shared.d.ts', 'export type Shared = string;\n');
+    writeProjectFile(
+      tempDir,
+      'src/request/use.ts',
+      "import type { Response } from './types';\nimport type { Shared } from '@/shared';\nexport const value: Response | Shared = 'ok';\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/request/use.ts'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual([
+      'src/request/types.d.ts',
+      'src/shared.d.ts',
+    ]);
+    expect(result.unresolved).toEqual([]);
+  });
+
+  it('does not report path aliases that target node_modules as unresolved local imports', () => {
+    writeProjectFile(
+      tempDir,
+      'tsconfig.json',
+      JSON.stringify({
+        compilerOptions: {
+          baseUrl: '.',
+          paths: {
+            '@/*': ['src/*'],
+            react: ['./node_modules/@types/react'],
+          },
+        },
+      })
+    );
+    writeProjectFile(tempDir, 'src/helper.ts', 'export const helper = true;\n');
+    writeProjectFile(
+      tempDir,
+      'src/entry.tsx',
+      "import React from 'react';\nimport { helper } from '@/helper';\nimport './missing';\nexport const Entry = () => <div>{String(helper || React)}</div>;\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/entry.tsx'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual(['src/helper.ts']);
+    expect(result.unresolved).toEqual([
+      {
+        file: path.join(tempDir, 'src/entry.tsx'),
+        specifier: './missing',
+      },
+    ]);
+  });
+
   it('resolves exact and wildcard tsconfig paths without baseUrl from the scan root', () => {
     writeProjectFile(
       tempDir,
@@ -317,6 +454,34 @@ describe('related-files module', () => {
     expect(toProjectPaths(tempDir, result.imports)).toEqual([
       'src/base.ts',
       'src/value.ts',
+    ]);
+  });
+
+  it('resolves extensionless imports whose basename contains dots', () => {
+    writeProjectFile(tempDir, 'src/app.controller.ts', 'export const controller = true;\n');
+    writeProjectFile(tempDir, 'src/modules/users/users.module.ts', 'export const module = true;\n');
+    writeProjectFile(
+      tempDir,
+      'src/app.module.ts',
+      "import './app.controller';\nimport './modules/users/users.module';\nimport './missing.controller';\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/app.module.ts'),
+      root: tempDir,
+      direction: 'imports',
+      maxDepth: 1,
+    });
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual([
+      'src/app.controller.ts',
+      'src/modules/users/users.module.ts',
+    ]);
+    expect(result.unresolved).toEqual([
+      {
+        file: path.join(tempDir, 'src/app.module.ts'),
+        specifier: './missing.controller',
+      },
     ]);
   });
 

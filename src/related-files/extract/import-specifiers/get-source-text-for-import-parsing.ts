@@ -1,9 +1,9 @@
 import path from 'node:path';
+import { extractAstroImportSourceText } from './extract-astro-import-source-text';
 
 export function getSourceTextForImportParsing(filePath: string, content: string): string {
   const isAstroFile = path.extname(filePath).toLowerCase() === '.astro';
   if (!isAstroFile) return content;
 
-  const frontmatterMatch = content.match(/^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/);
-  return frontmatterMatch?.[1] ?? '';
+  return extractAstroImportSourceText(content);
 }

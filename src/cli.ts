@@ -90,6 +90,7 @@ const cli = {
       ignore: ignoreRegex,
       onlyFolder: options.onlyFolder,
       color: cli.shouldColorOutput() && options.exportPath === undefined,
+      includeSummary: true,
     });
     const lacksDirectoryOutput = output === null;
 
@@ -108,6 +109,7 @@ const cli = {
       ignore: ignoreRegex,
       onlyFolder: options.onlyFolder,
       color: false,
+      includeSummary: true,
     });
     cli.writeOrPrint(exportOutput ?? output, options.exportPath);
   },

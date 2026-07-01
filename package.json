@@ -1,6 +1,6 @@
 {
   "name": "@skapxd/tree",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "A directory structure tree generator for CLI",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -52,7 +52,7 @@
     "ignore": "7.0.5"
   },
   "devDependencies": {
-    "@skapxd/eslint-opinionated": "^8.5.0",
+    "@skapxd/lint-agent": "^1.0.2",
     "@types/commander": "2.12.5",
     "@types/node": "26.0.1",
     "@vitest/coverage-v8": "4.0.18",

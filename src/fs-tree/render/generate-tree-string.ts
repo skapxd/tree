@@ -1,7 +1,9 @@
 import { type TreeStructure } from '@/fs-tree/scan/dir-to-json';
+import { formatTreeSummary, type TreeSummary } from '@/fs-tree/summary';
 
 export type DrawOptions = {
   color?: boolean;
+  summary?: TreeSummary;
 };
 
 type DrawContext = {
@@ -102,6 +104,10 @@ export function generateTreeString(structure: TreeStructure, options: DrawOption
   const context: DrawContext = { lines: [], options };
   const children = structure[rootName] ?? [];
   generateTreeStringHelpers.drawDirTree(context, rootName, children, '', true, true);
+
+  if (options.summary !== undefined) {
+    context.lines.push('', formatTreeSummary(options.summary));
+  }
 
   return context.lines.join('\n');
 }
