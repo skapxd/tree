@@ -5,8 +5,6 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/skapxd/tree/badge)](https://securityscorecards.dev/viewer/?uri=github.com/skapxd/tree)
 [![Snyk security](https://snyk.io/test/github/skapxd/tree/badge.svg)](https://snyk.io/test/github/skapxd/tree)
 [![npm version](https://img.shields.io/npm/v/@skapxd/tree.svg)](https://www.npmjs.com/package/@skapxd/tree)
-[![npm provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/@skapxd/tree)
-[![skills.sh](https://skills.sh/b/skapxd/tree)](https://skills.sh/skapxd/tree)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Project structure and relationship visualizer for codebases, docs, and AI-agent context.
@@ -21,6 +19,16 @@ It is optimized for quick human inspection and for AI agents that need bounded, 
 Every rendered CLI output also reports the approximate cost of pasting that output into an agent.
 Releases are published from GitHub Actions with npm provenance. The repository exposes OpenSSF Scorecard,
 CodeQL, Dependabot, Dependency Review, and Snyk signals for public supply-chain security posture.
+These are trust signals, not a substitute for reviewing the source before executing a CLI in sensitive repositories.
+
+## Security & Supply Chain
+
+- [CI/CD](https://github.com/skapxd/tree/actions/workflows/ci.yml) runs lint, typecheck, tests, build, package smoke tests, and npm provenance checks.
+- [CodeQL](https://github.com/skapxd/tree/actions/workflows/codeql.yml) scans the TypeScript/JavaScript codebase.
+- [OpenSSF Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/skapxd/tree) reports repository supply-chain posture.
+- [Snyk](https://snyk.io/test/github/skapxd/tree) monitors dependency security signals.
+- [SECURITY.md](./SECURITY.md) documents how to report vulnerabilities.
+- npm releases are published from GitHub Actions with provenance enabled.
 
 ## Quick Start
 
@@ -48,6 +56,8 @@ tree ./src
 ```
 
 ## Agent Skill
+
+[![skills.sh](https://skills.sh/b/skapxd/tree)](https://skills.sh/skapxd/tree)
 
 Install the reusable agent skill from this repository:
 
