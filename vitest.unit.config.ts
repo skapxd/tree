@@ -10,8 +10,7 @@ export default defineConfig({
   test: {
     include: ['src/**/*.spec.ts'],
     globals: true, // Para poder usar describe, it, expect sin importar (opcional, pero cómodo)
-    reporters: ['default', 'html'],
-    outputFile: path.resolve(__dirname, 'coverage/unit/index.html'),
+    reporters: ['default'],
     coverage: {
       enabled: true,
       provider: 'v8',

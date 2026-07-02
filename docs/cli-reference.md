@@ -44,7 +44,7 @@ and imports that resolve only through symlinks remain unresolved.
 Every rendered CLI output ends with `output context`, which measures the visible command output itself:
 characters and approximate tokens after stripping terminal color escape sequences. This is the cost of
 pasting the tree result into an agent, not the cost of the source files. It does not include shell prompts
-or wrapper output from tools such as `yarn`.
+or package-manager wrapper output.
 
 ## Examples
 

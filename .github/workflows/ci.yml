@@ -20,38 +20,85 @@ jobs:
         node-version: [20.x, 22.x]
 
     steps:
-    - name: Checkout repository
-      # actions/checkout@v4
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Checkout repository
+        # actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      # actions/setup-node@v4
-      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'yarn'
+      - name: Setup pnpm
+        # pnpm/action-setup@v6.0.9
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
+        with:
+          version: 11.7.0
 
-    - name: Install dependencies (Frozen Lockfile)
-      run: yarn install --frozen-lockfile
+      - name: Use Node.js ${{ matrix.node-version }}
+        # actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-    - name: Type Check
-      run: yarn typecheck
+      - name: Install dependencies (Frozen Lockfile)
+        run: pnpm install --frozen-lockfile
 
-    # - name: Run Tests
-    #   run: yarn test
+      - name: Type Check
+        run: pnpm typecheck
 
-  publish:
-    name: Publish to NPM
-    needs: build-and-test
-    if: github.event_name == 'release'
+      - name: Run Tests
+        run: pnpm test
+
+      - name: Build Package
+        run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+  dependency-audit:
+    name: Dependency Audit
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
       - name: Checkout repository
         # actions/checkout@v4
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Setup pnpm
+        # pnpm/action-setup@v6.0.9
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
+        with:
+          version: 11.7.0
+
+      - name: Use Node.js 22.x
+        # actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+
+      - name: Install dependencies (Frozen Lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit Dependencies
+        run: pnpm security:audit
+
+  publish:
+    name: Publish to NPM
+    needs: [build-and-test, dependency-audit]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - name: Checkout repository
+        # actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Setup pnpm
+        # pnpm/action-setup@v6.0.9
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093
+        with:
+          version: 11.7.0
 
       - name: Setup Node.js for Publishing
         # actions/setup-node@v4
@@ -59,14 +106,41 @@ jobs:
         with:
           node-version: 20.x
           registry-url: 'https://registry.npmjs.org'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build Package
-        run: yarn build
+        run: pnpm build
+
+      - name: Pack release artifact
+        id: pack
+        shell: bash
+        run: |
+          package_file="$(npm pack --json | node -e "let input = ''; process.stdin.on('data', chunk => input += chunk); process.stdin.on('end', () => console.log(JSON.parse(input)[0].filename));")"
+          shasum -a 256 "$package_file" > "$package_file.sha256"
+          echo "package_file=$package_file" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release provenance
+        id: attest
+        # actions/attest@v4.1.1
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763
+        with:
+          subject-path: ${{ steps.pack.outputs.package_file }}
 
       - name: Publish to NPM
-        run: npm publish --access public --provenance
+        run: npm publish "${{ steps.pack.outputs.package_file }}" --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Upload GitHub release assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_FILE: ${{ steps.pack.outputs.package_file }}
+          PROVENANCE_BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        run: |
+          provenance_file="$PACKAGE_FILE.intoto.jsonl"
+          cp "$PROVENANCE_BUNDLE" "$provenance_file"
+          gh release upload "${{ github.event.release.tag_name }}" "$PACKAGE_FILE" "$PACKAGE_FILE.sha256" "$provenance_file" --clobber

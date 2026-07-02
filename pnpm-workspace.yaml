@@ -1,0 +1,7 @@
+overrides:
+  picomatch: 4.0.4
+  rollup: 4.62.2
+minimumReleaseAgeExclude:
+  - '@skapxd/lint-agent@1.0.2'
+allowBuilds:
+  esbuild: true

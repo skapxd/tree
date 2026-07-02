@@ -123,7 +123,7 @@ stats and do not count toward the text-context budget. `largest files by chars` 
 `pnpm-lock.yaml`, and `bun.lockb` so the outlier list stays useful for code review.
 The final `output context` block measures the visible CLI output itself, including that block, so
 agents can estimate the cost of pasting the command result into context. It does not include shell prompts,
-`yarn` wrapper output, or terminal color escape sequences.
+package-manager wrapper output, or terminal color escape sequences.
 
 ## File Outline Mode
 
@@ -357,25 +357,25 @@ The root README is the npm-facing overview. The same information is also segment
 ## Development
 
 ```bash
-yarn install
-yarn lint
-yarn typecheck
-yarn test
-yarn build
+pnpm install
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
 ```
 
 Linting uses `@skapxd/lint-agent` with the package preset as a strict gate:
 
-- `yarn lint`: runs ESLint on maintained source files and fails on any violation.
-- `yarn lint:full`: audits the full package preset through `skapxd-lint`.
-- `yarn lint:adopt`: asks `skapxd-lint` for the next incremental adoption batch.
-- `yarn lint:changed`: checks only git-changed files with the package preset.
+- `pnpm lint`: runs ESLint on maintained source files and fails on any violation.
+- `pnpm lint:full`: audits the full package preset through `skapxd-lint`.
+- `pnpm lint:adopt`: asks `skapxd-lint` for the next incremental adoption batch.
+- `pnpm lint:changed`: checks only git-changed files with the package preset.
 
-`yarn start` runs the compiled CLI, so rebuild after source changes:
+`pnpm start` runs the compiled CLI, so rebuild after source changes:
 
 ```bash
-yarn build
-yarn start ./src/cli.ts -r
+pnpm build
+pnpm start ./src/cli.ts -r
 ```
 
 ## License

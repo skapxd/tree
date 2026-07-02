@@ -5,13 +5,13 @@ This package uses TypeScript, tsup, and Vitest.
 ## Install
 
 ```bash
-yarn install
+pnpm install
 ```
 
 ## Build
 
 ```bash
-yarn build
+pnpm build
 ```
 
 The package builds both library and CLI entries into `dist/`.
@@ -19,35 +19,35 @@ The package builds both library and CLI entries into `dist/`.
 ## Typecheck
 
 ```bash
-yarn typecheck
+pnpm typecheck
 ```
 
 ## Lint
 
 ```bash
-yarn lint
+pnpm lint
 ```
 
 Linting uses `@skapxd/lint-agent` with the package preset as a strict gate.
 
-- `yarn lint`: runs maintained source files and fails on any violation.
-- `yarn lint:full`: runs the full package preset through `skapxd-lint`.
-- `yarn lint:adopt`: asks `skapxd-lint` for a bounded adoption batch to decide what to fix first.
-- `yarn lint:changed`: checks only git-changed files.
+- `pnpm lint`: runs maintained source files and fails on any violation.
+- `pnpm lint:full`: runs the full package preset through `skapxd-lint`.
+- `pnpm lint:adopt`: asks `skapxd-lint` for a bounded adoption batch to decide what to fix first.
+- `pnpm lint:changed`: checks only git-changed files.
 
 ## Test
 
 ```bash
-yarn test
+pnpm test
 ```
 
 ## Local CLI
 
-`yarn start` runs the compiled CLI, so rebuild after source changes:
+`pnpm start` runs the compiled CLI, so rebuild after source changes:
 
 ```bash
-yarn build
-yarn start ./src/cli.ts -r
+pnpm build
+pnpm start ./src/cli.ts -r
 ```
 
 For direct Node execution:
