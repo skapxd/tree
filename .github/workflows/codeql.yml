@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze JavaScript/TypeScript
+    name: CodeQL Analyze JavaScript/TypeScript
     runs-on: ubuntu-latest
     permissions:
       actions: read

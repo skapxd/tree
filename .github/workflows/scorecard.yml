@@ -25,16 +25,7 @@ jobs:
       id-token: write
       security-events: write
     steps:
-      - name: Checkout completed CodeQL commit
-        if: github.event_name == 'workflow_run'
-        # actions/checkout@v4
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-        with:
-          persist-credentials: false
-          ref: ${{ github.event.workflow_run.head_sha }}
-
       - name: Checkout repository
-        if: github.event_name != 'workflow_run'
         # actions/checkout@v4
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
