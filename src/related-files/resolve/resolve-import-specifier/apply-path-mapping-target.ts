@@ -6,6 +6,6 @@ export function applyPathMappingTarget(
   target: string,
   matchedText: string
 ): string {
-  const replacedTarget = target.includes('*') ? target.replace('*', matchedText) : target;
+  const replacedTarget = target.includes('*') ? target.split('*').join(matchedText) : target;
   return path.resolve(resolverOptions.baseUrl ?? resolverOptions.root, replacedTarget);
 }

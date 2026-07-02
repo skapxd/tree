@@ -15,16 +15,21 @@ describe('fs-tree module', () => {
       expect(parseIgnoreOption('')).toBeNull();
     });
 
-    it('should parse simple strings into regex', () => {
+    it('should parse simple strings into safe regex alternatives', () => {
       const regex = parseIgnoreOption('node_modules');
       expect(regex).toBeInstanceOf(RegExp);
       expect(regex?.test('node_modules')).toBe(true);
       expect(regex?.test('src')).toBe(false);
+
+      const alternatives = parseIgnoreOption('node_modules|dist|coverage');
+      expect(alternatives?.test('dist')).toBe(true);
+      expect(alternatives?.test('coverage')).toBe(true);
     });
 
-    it('should handle regex-like strings with slashes', () => {
-      const regex = parseIgnoreOption('/\.git/');
-      expect(regex?.test('.git')).toBe(true);
+    it('should treat string ignore metacharacters as literals', () => {
+      const regex = parseIgnoreOption('a+b');
+      expect(regex?.test('a+b')).toBe(true);
+      expect(regex?.test('aaab')).toBe(false);
     });
   });
 

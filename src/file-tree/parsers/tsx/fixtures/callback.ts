@@ -8,5 +8,6 @@ export function main() {
 
   process.action((args) => {
     const local = 'value';
+    return local;
   });
 }

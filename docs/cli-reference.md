@@ -15,7 +15,7 @@ tree [options] [path]
 | Flag | Description | Context |
 | :--- | :--- | :--- |
 | `-d`, `--directory <dir>` | Specify a path as an alternative to the positional argument. | Both |
-| `-i`, `--ignore [ig]` | Regex pattern to ignore. | Directory/Related |
+| `-i`, `--ignore [ig]` | Literal pattern to ignore. Use `|` for alternatives. | Directory/Related |
 | `-e`, `--export [epath]` | Export result to a file. | Both |
 | `-f`, `--only-folder` | Output folders only. | Directory |
 | `-r`, `--related [mode]` | Show related files. Modes: `imports`, `importers`, `both`. | File |

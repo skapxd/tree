@@ -68,8 +68,8 @@ exports[`TSX Parser (Snapshots) > should parse api.ts correctly 1`] = `
   },
   {
     "endLine": 18,
-    "fullHeading": "function helper() {",
-    "kind": "func",
+    "fullHeading": "export function helper() {",
+    "kind": "func export",
     "level": 1,
     "startLine": 16,
     "title": "helper",
@@ -80,7 +80,7 @@ exports[`TSX Parser (Snapshots) > should parse api.ts correctly 1`] = `
 exports[`TSX Parser (Snapshots) > should parse callback.ts correctly 1`] = `
 [
   {
-    "endLine": 12,
+    "endLine": 13,
     "fullHeading": "export function main() {",
     "kind": "func export",
     "level": 1,
@@ -112,7 +112,7 @@ exports[`TSX Parser (Snapshots) > should parse callback.ts correctly 1`] = `
     "title": "doubled",
   },
   {
-    "endLine": 11,
+    "endLine": 12,
     "fullHeading": "  process.action((args) => {",
     "kind": "call",
     "level": 2,
@@ -165,7 +165,7 @@ exports[`TSX Parser (Snapshots) > should parse component.tsx correctly 1`] = `
     "title": "Header",
   },
   {
-    "endLine": 14,
+    "endLine": 19,
     "fullHeading": "export default function App() {",
     "kind": "func export",
     "level": 1,
