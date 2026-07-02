@@ -356,6 +356,8 @@ The root README is the npm-facing overview. The same information is also segment
 
 ## Development
 
+Development uses pnpm 11 and requires Node.js 22.13 or newer.
+
 ```bash
 pnpm install
 pnpm lint

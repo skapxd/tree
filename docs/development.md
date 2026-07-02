@@ -2,6 +2,8 @@
 
 This package uses TypeScript, tsup, and Vitest.
 
+Development uses pnpm 11 and requires Node.js 22.13 or newer.
+
 ## Install
 
 ```bash
