@@ -10,5 +10,10 @@ export const Header: React.FC<Props> = ({ title }) => {
 
 export default function App() {
   const [count, setCount] = React.useState(0);
-  return <Header title="Hello" />;
+  return (
+    <>
+      <Header title="Hello" />
+      <button onClick={() => setCount(count + 1)}>{count}</button>
+    </>
+  );
 }

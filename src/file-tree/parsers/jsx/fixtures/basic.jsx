@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const Button = ({ label }) => {
-  return <button>{label}</button>;
+  return <button data-helper={helper()}>{label}</button>;
 };
 
 export class Card extends React.Component {

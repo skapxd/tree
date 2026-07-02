@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from 'vitest';
-import fs from 'fs';
 import path from 'path';
 import { getParser, findSection, readFile, buildTreeFromSections, showSingleFileOutline } from './index';
 import { markdownParser } from './parsers/md';

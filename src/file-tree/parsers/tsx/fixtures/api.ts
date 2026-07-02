@@ -13,6 +13,6 @@ export class UserService {
   }
 }
 
-function helper() {
+export function helper() {
   return true;
 }

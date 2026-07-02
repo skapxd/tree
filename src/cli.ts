@@ -31,21 +31,11 @@ type PackageJson = {
 };
 
 const DEFAULT_VERSION = '0.0.0';
-const DEFAULT_IGNORE_PATTERNS = ['^\\.git$', '^\\.DS_Store$'];
 const PACKAGE_JSON_PATH = path.join(__dirname, '../package.json');
 
 const cli = {
   absorbRecoverableBoundaryError(error: unknown): void {
     void error;
-  },
-
-  createDirectoryIgnoreRegex(ignore: string | undefined): RegExp {
-    const hasCustomIgnore = ignore !== undefined;
-    const ignorePatterns = hasCustomIgnore
-      ? [...DEFAULT_IGNORE_PATTERNS, ignore]
-      : [...DEFAULT_IGNORE_PATTERNS];
-
-    return new RegExp(ignorePatterns.join('|'));
   },
 
   canColorOutput(exportPath: string | undefined): boolean {
@@ -89,10 +79,9 @@ const cli = {
       process.exit(1);
     }
 
-    const ignoreRegex = cli.createDirectoryIgnoreRegex(options.ignore);
     const output = tree({
       directory: targetPath,
-      ignore: ignoreRegex,
+      ...(options.ignore === undefined ? {} : { ignore: options.ignore }),
       onlyFolder: options.onlyFolder,
       color: cli.canColorOutput(options.exportPath),
       includeSummary: true,
@@ -111,7 +100,7 @@ const cli = {
 
     const exportOutput = tree({
       directory: targetPath,
-      ignore: ignoreRegex,
+      ...(options.ignore === undefined ? {} : { ignore: options.ignore }),
       onlyFolder: options.onlyFolder,
       color: false,
       includeSummary: true,
@@ -257,7 +246,7 @@ program
   .version(cli.readPackageVersion())
   .argument('[path]', 'Directory or File path to analyze')
   .option('-d, --directory <dir>', 'Specify a path (alternative to positional argument)')
-  .option('-i, --ignore [ig]', 'Regex pattern to ignore (directories and related-file scans)')
+  .option('-i, --ignore [ig]', 'Literal pattern to ignore. Use | for alternatives.')
   .option('-e, --export [epath]', 'Export result to a file')
   .option('-f, --only-folder', 'Output folders only (only for directories)')
   .option('-r, --related [mode]', 'Show related files for a file using imports. Modes: imports, importers, both.')

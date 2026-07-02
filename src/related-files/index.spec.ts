@@ -110,6 +110,37 @@ describe('related-files module', () => {
     expect(toProjectPaths(tempDir, result.imports)).toEqual(['src/components/Button/index.tsx']);
   });
 
+  it('replaces every wildcard occurrence in tsconfig path mapping targets', () => {
+    writeProjectFile(
+      tempDir,
+      'tsconfig.json',
+      JSON.stringify({
+        compilerOptions: {
+          baseUrl: '.',
+          paths: {
+            '@dupe/*': ['src/*/generated/*'],
+          },
+        },
+      })
+    );
+    writeProjectFile(tempDir, 'src/widgets/generated/widgets.ts', 'export const widgets = true;\n');
+    writeProjectFile(
+      tempDir,
+      'src/routes/page.ts',
+      "import { widgets } from '@dupe/widgets';\nexport const page = widgets;\n"
+    );
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'src/routes/page.ts'),
+      root: tempDir,
+      direction: 'imports',
+    });
+
+    expect(toProjectPaths(tempDir, result.imports)).toEqual([
+      'src/widgets/generated/widgets.ts',
+    ]);
+  });
+
   it('extracts astro frontmatter imports when the fence has trailing whitespace', () => {
     writeProjectFile(tempDir, 'src/layouts/Layout.astro', '<slot />\n');
     writeProjectFile(tempDir, 'src/components/AppContent.astro', '<main />\n');
@@ -138,7 +169,7 @@ describe('related-files module', () => {
     writeProjectFile(
       tempDir,
       'src/pages/app.astro',
-      "---\nconst title = 'App';\n---\n<script>\nimport '../lib/client';\n</script>\n<script type=\"module\">\nconst name = 'module';\nimport(`../lib/${name}`);\n</script>\n<script type=\"application/ld+json\">\nimport '../lib/skipped';\n</script>\n"
+      "---\nconst title = 'App';\n---\n<script>\nimport '../lib/client';\n</script >\n<script type=\"module\">\nconst name = 'module';\nimport(`../lib/${name}`);\n</script data-end>\n<script type=\"application/ld+json\">\nimport '../lib/skipped';\n</script>\n"
     );
 
     const result = getRelatedFiles({
@@ -665,6 +696,22 @@ describe('related-files module', () => {
     expect(treeOutput).toContain('docs/index.md (2 lines, 35 chars, ~9 tokens)');
     expect(treeOutput).toContain('docs/guide.md (1 line, 30 chars, ~8 tokens)');
     expect(summaryOutput).toContain('docs/guide.md - Guide Docs (1 line, 30 chars, ~8 tokens)');
+  });
+
+  it('escapes markdown link metadata labels', () => {
+    writeProjectFile(tempDir, 'docs/index.md', '[Quoted "Doc" \\ Path](./guide.md)\n');
+    writeProjectFile(tempDir, 'docs/guide.md', '# Guide\n');
+
+    const result = getRelatedFiles({
+      file: path.join(tempDir, 'docs/index.md'),
+      root: tempDir,
+      direction: 'imports',
+    });
+    const output = formatRelatedFilesTree(result);
+
+    expect(output).toContain(
+      `link source: docs/index.md:1 ${JSON.stringify('Quoted "Doc" \\ Path')}`
+    );
   });
 
   it('excludes non-text related files from related text context totals', () => {

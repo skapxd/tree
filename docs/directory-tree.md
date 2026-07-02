@@ -56,7 +56,7 @@ excluding shell prompts, wrapper output, and terminal color escape sequences.
 
 The command respects `.gitignore` and filters common noise such as `.git` and `.DS_Store`.
 
-Use `--ignore` for additional regular-expression filtering:
+Use `--ignore` for additional literal filtering. Separate alternatives with `|`:
 
 ```bash
 npx @skapxd/tree . --ignore "node_modules|dist|coverage|.next"
