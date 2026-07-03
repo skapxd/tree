@@ -4,6 +4,7 @@ import { Result, trySafe } from '@skapxd/result';
 import { program } from 'commander';
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseOutputFilePath } from './cli-output';
 import { getParser, readFile, formatSingleFileOutline } from './file-tree';
 import { tree } from './fs-tree';
 import { appendOutputContextSummary } from './shared/output-context';
@@ -17,9 +18,9 @@ import {
 type CliOptions = {
   depth: unknown;
   directory: string | undefined;
-  exportPath: string | undefined;
   ignore: string | undefined;
   onlyFolder: boolean;
+  outputPath: string | undefined;
   related: unknown;
   root: string | undefined;
   summary: boolean;
@@ -38,8 +39,8 @@ const cli = {
     void error;
   },
 
-  canColorOutput(exportPath: string | undefined): boolean {
-    return cli.shouldColorOutput() && exportPath === undefined;
+  canColorOutput(outputPath: string | undefined): boolean {
+    return cli.shouldColorOutput() && outputPath === undefined;
   },
 
   createRelatedOutput(targetPath: string, options: CliOptions): string {
@@ -53,7 +54,7 @@ const cli = {
     };
     const relatedFiles = getRelatedFiles(relatedOptions);
     const formatOptions = {
-      color: cli.canColorOutput(options.exportPath),
+      color: cli.canColorOutput(options.outputPath),
     };
     const shouldRenderSummary = options.summary && !options.tree;
 
@@ -83,7 +84,7 @@ const cli = {
       directory: targetPath,
       ...(options.ignore === undefined ? {} : { ignore: options.ignore }),
       onlyFolder: options.onlyFolder,
-      color: cli.canColorOutput(options.exportPath),
+      color: cli.canColorOutput(options.outputPath),
       includeSummary: true,
     });
     const lacksDirectoryOutput = output === null;
@@ -93,19 +94,7 @@ const cli = {
       process.exit(1);
     }
 
-    cli.writeOrPrint(output, undefined, cli.canColorOutput(options.exportPath));
-
-    const shouldExport = options.exportPath !== undefined;
-    if (!shouldExport) return;
-
-    const exportOutput = tree({
-      directory: targetPath,
-      ...(options.ignore === undefined ? {} : { ignore: options.ignore }),
-      onlyFolder: options.onlyFolder,
-      color: false,
-      includeSummary: true,
-    });
-      cli.writeOrPrint(exportOutput ?? output, options.exportPath, false);
+    cli.writeOrPrint(output, options.outputPath, cli.canColorOutput(options.outputPath));
   },
 
   handleFileTarget(targetPath: string, options: CliOptions): void {
@@ -113,7 +102,7 @@ const cli = {
       const hasRelatedMode = cli.hasRelatedOption(options.related);
       if (hasRelatedMode) {
         const output = cli.createRelatedOutput(targetPath, options);
-        cli.writeOrPrint(output, options.exportPath, cli.canColorOutput(options.exportPath));
+        cli.writeOrPrint(output, options.outputPath, cli.canColorOutput(options.outputPath));
         return;
       }
 
@@ -121,7 +110,7 @@ const cli = {
       const parser = getParser(targetPath);
       const { lines, sections } = parser.parse(content);
       const output = formatSingleFileOutline(targetPath, lines, sections);
-      cli.writeOrPrint(output, options.exportPath, cli.canColorOutput(options.exportPath));
+      cli.writeOrPrint(output, options.outputPath, cli.canColorOutput(options.outputPath));
     });
 
     if (Result.isErr(result)) {
@@ -132,6 +121,17 @@ const cli = {
 
   hasRelatedOption(value: unknown): boolean {
     return value !== undefined && value !== false;
+  },
+
+  hasOutputPathOption(value: unknown): boolean {
+    return value !== undefined && value !== false;
+  },
+
+  hasConflictingOutputOptions(value: unknown): boolean {
+    const rawOptions = cli.isRecord(value) ? value : {};
+    const hasOutputOption = cli.hasOutputPathOption(rawOptions.output);
+    const hasLegacyExportOption = cli.hasOutputPathOption(rawOptions.export);
+    return hasOutputOption && hasLegacyExportOption;
   },
 
   isPackageJson(value: unknown): value is PackageJson {
@@ -154,9 +154,13 @@ const cli = {
     return {
       depth: rawOptions.depth,
       directory: cli.getStringOption(rawOptions.directory),
-      exportPath: cli.getStringOption(rawOptions.export),
       ignore: cli.getStringOption(rawOptions.ignore),
       onlyFolder: rawOptions.onlyFolder === true,
+      outputPath: parseOutputFilePath({
+        output: rawOptions.output,
+        exportPath: rawOptions.export,
+        cwd: process.cwd(),
+      }),
       related: rawOptions.related,
       root: cli.getStringOption(rawOptions.root),
       summary: rawOptions.summary === true,
@@ -222,21 +226,22 @@ const cli = {
     return process.stdout.isTTY === true;
   },
 
-  writeOrPrint(output: string, exportPath: string | undefined, color = false): void {
+  writeOrPrint(output: string, outputPath: string | undefined, color = false): void {
     const outputWithContextSummary = appendOutputContextSummary(output, { color });
-    const shouldPrint = exportPath === undefined;
+    const shouldPrint = outputPath === undefined;
     if (shouldPrint) {
       console.log(outputWithContextSummary);
       return;
     }
 
-    const writeResult = trySafe(() => fs.writeFileSync(exportPath, outputWithContextSummary));
+    const absoluteOutputPath = path.resolve(outputPath);
+    const writeResult = trySafe(() => fs.writeFileSync(absoluteOutputPath, outputWithContextSummary));
     if (Result.isErr(writeResult)) {
       cli.printCliError(writeResult.error);
       process.exit(1);
     }
 
-    console.log('\n\nThe result has been saved into ' + exportPath);
+    console.log(`Output written to ${absoluteOutputPath}`);
   },
 };
 
@@ -247,7 +252,8 @@ program
   .argument('[path]', 'Directory or File path to analyze')
   .option('-d, --directory <dir>', 'Specify a path (alternative to positional argument)')
   .option('-i, --ignore [ig]', 'Literal pattern to ignore. Use | for alternatives.')
-  .option('-e, --export [epath]', 'Export result to a file')
+  .option('-o, --output [path]', 'Write result to a file. Defaults to ./tree-output.txt.')
+  .option('-e, --export [epath]', 'Legacy alias for --output')
   .option('-f, --only-folder', 'Output folders only (only for directories)')
   .option('-r, --related [mode]', 'Show related files for a file using imports. Modes: imports, importers, both.')
   .option('--root <dir>', 'Project root for --related scans. Defaults to the current directory.')
@@ -255,6 +261,12 @@ program
   .option('--summary', 'Use the layered related-file summary instead of the full nested tree.')
   .option('--tree', 'Use the full nested related-file tree. This is the default for --related.')
   .action((dirArg: unknown, rawOptions: unknown) => {
+    const hasConflictingOutputOptions = cli.hasConflictingOutputOptions(rawOptions);
+    if (hasConflictingOutputOptions) {
+      cli.printCliError(new Error('Use either --output or --export, not both.'));
+      process.exit(1);
+    }
+
     const options = cli.parseCliOptions(rawOptions);
     const targetPath = cli.getTargetPath(dirArg, options);
     const statsResult = trySafe(() => fs.lstatSync(targetPath));

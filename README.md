@@ -332,7 +332,8 @@ tree [options] [path]
 | `[path]` | Directory or file to analyze. Defaults to current directory. | Both |
 | `-d`, `--directory <dir>` | Specify a path as an alternative to the positional argument. | Both |
 | `-i`, `--ignore [ig]` | Literal pattern to ignore. Use `|` for alternatives. | Directory/Related |
-| `-e`, `--export [epath]` | Export result to a file. | Both |
+| `-o`, `--output [path]` | Write result to a file. Defaults to `./tree-output.txt` when no path is provided. | Both |
+| `-e`, `--export [epath]` | Legacy alias for `--output`. | Both |
 | `-f`, `--only-folder` | Output folders only. | Directory |
 | `-r`, `--related [mode]` | Show related files. Modes: `imports`, `importers`, `both`. | File |
 | `--root <dir>` | Project root for related-file scans. Defaults to current directory. | Related |
@@ -341,6 +342,10 @@ tree [options] [path]
 | `--tree` | Use the full nested related-file tree. This is the default for `-r`. | Related |
 | `-V`, `--version` | Print version. | Both |
 | `-h`, `--help` | Print help. | Both |
+
+When `--output` is used, the rendered content is written to disk and stdout only prints the absolute
+path of the generated file. Passing `--output` without a value writes `tree-output.txt` in the current
+working directory.
 
 ## Full Documentation
 

@@ -62,8 +62,12 @@ Use `--ignore` for additional literal filtering. Separate alternatives with `|`:
 npx @skapxd/tree . --ignore "node_modules|dist|coverage|.next"
 ```
 
-## Export
+## Output File
 
 ```bash
-npx @skapxd/tree ./src --export /tmp/src-tree.txt
+npx @skapxd/tree ./src --output
+npx @skapxd/tree ./src -o /tmp/src-tree.txt
 ```
+
+Without a path, `--output` writes `tree-output.txt` in the current working directory. The CLI prints
+the absolute path of the generated file.
