@@ -1,25 +1,11 @@
 import ts from 'typescript';
 import { type OutlineResult, type Parser, type Section } from '@/file-tree/types';
+import { getExportedKind } from './index/get-exported-kind';
+import { getExpressionName } from './index/get-expression-name';
+import { isExported } from './index/is-exported';
 
 type AddSection = (title: string, node: ts.Node, kind: string, level: number) => void;
 type VisitNode = (node: ts.Node, level: number) => void;
-
-const tsxParserHelpers = {
-  getExportedKind(baseKind: string, node: ts.Node): string {
-    const isExportedNode = isExported(node);
-    return isExportedNode ? `${baseKind} export` : baseKind;
-  },
-
-  getExpressionName(expression: ts.Expression): string | null {
-    const isIdentifierExpression = ts.isIdentifier(expression);
-    if (isIdentifierExpression) return expression.text;
-
-    const isPropertyAccessExpression = ts.isPropertyAccessExpression(expression);
-    if (isPropertyAccessExpression) return expression.name.text;
-
-    return null;
-  },
-};
 
 export const tsxParser: Parser = {
   parse(content: string): OutlineResult {
@@ -78,7 +64,7 @@ export const tsxParser: Parser = {
       const title = node.name?.text ?? 'anonymous';
       const isNamedFunction = title !== 'anonymous';
       if (isNamedFunction) {
-        addSection(title, node, tsxParserHelpers.getExportedKind('func', node), level);
+        addSection(title, node, getExportedKind('func', node), level);
       }
 
       recurseChildren(node, level + 1);
@@ -90,7 +76,7 @@ export const tsxParser: Parser = {
       if (!isClassNode) return false;
 
       const title = node.name?.text ?? 'anonymous';
-      addSection(title, node, tsxParserHelpers.getExportedKind('class', node), level);
+      addSection(title, node, getExportedKind('class', node), level);
       recurseChildren(node, level + 1);
       return true;
     };
@@ -99,7 +85,7 @@ export const tsxParser: Parser = {
       const isInterfaceNode = ts.isInterfaceDeclaration(node);
       if (!isInterfaceNode) return false;
 
-      addSection(node.name.text, node, tsxParserHelpers.getExportedKind('intf', node), level);
+      addSection(node.name.text, node, getExportedKind('intf', node), level);
       recurseChildren(node, level + 1);
       return true;
     };
@@ -108,7 +94,7 @@ export const tsxParser: Parser = {
       const isTypeAliasNode = ts.isTypeAliasDeclaration(node);
       if (!isTypeAliasNode) return false;
 
-      addSection(node.name.text, node, tsxParserHelpers.getExportedKind('type', node), level);
+      addSection(node.name.text, node, getExportedKind('type', node), level);
       recurseChildren(node, level + 1);
       return true;
     };
@@ -180,7 +166,7 @@ export const tsxParser: Parser = {
       );
       if (!hasCallback) return false;
 
-      const name = tsxParserHelpers.getExpressionName(node.expression);
+      const name = getExpressionName(node.expression);
       if (name === null) return false;
 
       addSection(`${name}() callback`, node, 'call', level);
@@ -263,11 +249,3 @@ export const tsxParser: Parser = {
     return { lines, sections };
   },
 };
-
-function isExported(node: ts.Node): boolean {
-  const canHaveModifiers = ts.canHaveModifiers(node);
-  if (!canHaveModifiers) return false;
-
-  const modifiers = ts.getModifiers(node) ?? [];
-  return modifiers.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword);
-}

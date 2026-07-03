@@ -1,6 +1,6 @@
 {
   "name": "@skapxd/tree",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A directory structure tree generator for CLI",
   "packageManager": "pnpm@11.7.0",
   "main": "./dist/index.cjs",
@@ -29,6 +29,8 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run -c vitest.unit.config.ts",
+    "test:e2e": "pnpm build && pnpm test:e2e:run",
+    "test:e2e:run": "vitest run -c vitest.e2e.config.ts",
     "test:coverage": "vitest run --coverage -c vitest.unit.config.ts",
     "typecheck": "tsc --noEmit",
     "security:audit": "pnpm audit --audit-level low",
@@ -53,7 +55,7 @@
     "ignore": "7.0.5"
   },
   "devDependencies": {
-    "@skapxd/lint-agent": "^1.0.2",
+    "@skapxd/lint-agent": "^1.1.0",
     "@types/commander": "2.12.5",
     "@types/node": "26.0.1",
     "@vitest/coverage-v8": "4.1.9",

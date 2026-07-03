@@ -1,94 +1,19 @@
-import { Result, trySafe } from '@skapxd/result';
-import fs from 'node:fs';
 import path from 'node:path';
 import { createIgnoreState } from '@/fs-tree/ignore/create-ignore-state';
-import { isIgnoredPath } from '@/fs-tree/ignore/is-ignored-path';
 import { sortDir } from './sort-dir';
 import { withGitIgnoreForDir } from '@/fs-tree/ignore/with-git-ignore-for-dir';
 import { type IgnoreState } from '@/fs-tree/ignore/gitignore-helpers';
-import { recordTreeDirectory, recordTreeFile, type TreeSummary } from '@/fs-tree/summary';
-import {
-  createTextStats,
-  formatTextStatsLabel,
-  readTextContent,
-  type TextStats,
-} from '@/shared/text-stats';
+import { type TreeSummary } from '@/fs-tree/summary';
 import { formatSymbolicLinkLabel } from '@/shared/symlink';
+import { formatFileName } from './dir-to-json/format-file-name';
+import { getFileTextStats } from './dir-to-json/get-file-text-stats';
+import { readDir } from './dir-to-json/read-dir';
+import { readStats } from './dir-to-json/read-stats';
+import { recordDirectory } from './dir-to-json/record-directory';
+import { recordFile } from './dir-to-json/record-file';
+import { shouldKeepChild } from './dir-to-json/should-keep-child';
 
 export type TreeStructure = { [key: string]: (string | TreeStructure)[] } | string;
-
-const dirToJsonHelpers = {
-  absorbRecoverableBoundaryError(error: unknown): void {
-    void error;
-  },
-
-  getFileTextStats(filePath: string): TextStats | null {
-    const content = readTextContent(filePath);
-    return content === null ? null : createTextStats(content);
-  },
-
-  formatFileName(filePath: string, stats: TextStats | null): string {
-    const fileName = path.basename(filePath);
-    if (stats === null) return fileName;
-
-    return `${fileName} (${formatTextStatsLabel(stats)})`;
-  },
-
-  recordDirectory(summary: TreeSummary | undefined, dirPath: string): void {
-    if (summary === undefined) return;
-
-    const reachedSummaryRoot = path.resolve(dirPath) === summary.rootPath;
-    if (reachedSummaryRoot) return;
-
-    recordTreeDirectory(summary);
-  },
-
-  recordFile(summary: TreeSummary | undefined, filePath: string, stats: TextStats | null): void {
-    if (summary === undefined) return;
-
-    recordTreeFile(summary, filePath, stats);
-  },
-
-  readDir(dirPath: string): string[] | null {
-    const result = trySafe(() => fs.readdirSync(dirPath));
-    if (Result.isErr(result)) {
-      dirToJsonHelpers.absorbRecoverableBoundaryError(result.error);
-      return null;
-    }
-
-    return result.value;
-  },
-
-  readStats(filePath: string): fs.Stats | null {
-    const result = trySafe(() => fs.lstatSync(filePath));
-    if (Result.isErr(result)) {
-      dirToJsonHelpers.absorbRecoverableBoundaryError(result.error);
-      return null;
-    }
-
-    return result.value;
-  },
-
-  shouldKeepChild(
-    activeIgnoreState: IgnoreState,
-    childPath: string,
-    child: string,
-    onlyFolder: boolean | undefined
-  ): boolean {
-    const childStats = dirToJsonHelpers.readStats(childPath);
-    if (childStats === null) return false;
-
-    const ignoredPath = isIgnoredPath(
-      activeIgnoreState,
-      childPath,
-      child,
-      childStats.isDirectory()
-    );
-    if (ignoredPath) return false;
-
-    return onlyFolder === true ? childStats.isDirectory() : true;
-  },
-};
 
 /**
  * Recursively scans a directory and returns a JSON-like structure.
@@ -103,7 +28,7 @@ export function dirToJson(
   ignoreState?: IgnoreState,
   summary?: TreeSummary
 ): TreeStructure | null {
-  const stats = dirToJsonHelpers.readStats(dirPath);
+  const stats = readStats(dirPath);
   if (stats === null) return null;
 
   const isDirectory = stats.isDirectory();
@@ -115,23 +40,23 @@ export function dirToJson(
   if (isSpecialFile) return path.basename(dirPath);
 
   if (!isDirectory) {
-    const stats = dirToJsonHelpers.getFileTextStats(dirPath);
-    dirToJsonHelpers.recordFile(summary, dirPath, stats);
+    const stats = getFileTextStats(dirPath);
+    recordFile(summary, dirPath, stats);
 
-    return dirToJsonHelpers.formatFileName(dirPath, stats);
+    return formatFileName(dirPath, stats);
   }
 
-  dirToJsonHelpers.recordDirectory(summary, dirPath);
+  recordDirectory(summary, dirPath);
 
   const activeIgnoreState = withGitIgnoreForDir(
     ignoreState ?? createIgnoreState(dirPath, ignoreRegex),
     dirPath
   );
-  const dir = dirToJsonHelpers.readDir(dirPath);
+  const dir = readDir(dirPath);
   if (dir === null) return null;
 
   const children = dir
-    .filter(child => dirToJsonHelpers.shouldKeepChild(
+    .filter(child => shouldKeepChild(
       activeIgnoreState,
       path.join(dirPath, child),
       child,

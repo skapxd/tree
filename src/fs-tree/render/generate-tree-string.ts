@@ -1,93 +1,9 @@
 import { type TreeStructure } from '@/fs-tree/scan/dir-to-json';
-import { formatTreeSummary, type TreeSummary } from '@/fs-tree/summary';
-import { ANSI_DIM, ANSI_RESET } from '@/shared/summary-style/constants';
+import { formatTreeSummary } from '@/fs-tree/summary';
+import { drawDirTree } from './generate-tree-string/draw-dir-tree';
+import { type DrawContext, type DrawOptions } from './generate-tree-string/types';
 
-export type DrawOptions = {
-  color?: boolean;
-  summary?: TreeSummary;
-};
-
-type DrawContext = {
-  lines: string[];
-  options: DrawOptions;
-};
-
-const characters = {
-  border: '│   ',
-  contain: '├── ',
-  last: '└── ',
-};
-
-const FILE_METADATA_SUFFIX_REGEX = /^(.*) \(([^()]*)\)$/;
-const generateTreeStringHelpers = {
-  formatDirectoryName(name: string): string {
-    return name.endsWith('/') ? name : `${name}/`;
-  },
-
-  formatFileName(name: string, color = false): string {
-    const match = name.match(FILE_METADATA_SUFFIX_REGEX);
-    if (match === null) return name;
-
-    const fileName = match[1];
-    const metadata = match[2];
-    const lacksMetadataMatch = fileName === undefined || metadata === undefined;
-    if (lacksMetadataMatch) return name;
-
-    const metadataSuffix = `(${metadata})`;
-    return `${fileName} ${color ? `${ANSI_DIM}${metadataSuffix}${ANSI_RESET}` : metadataSuffix}`;
-  },
-
-  getBranch(isRoot: boolean, isLast: boolean): string {
-    if (isRoot) return '';
-    return isLast ? characters.last : characters.contain;
-  },
-
-  getChildPrefix(prefix: string, isRoot: boolean, isLast: boolean): string {
-    if (isRoot) return '';
-    return `${prefix}${isLast ? '    ' : characters.border}`;
-  },
-
-  drawDirTree(
-    context: DrawContext,
-    name: string,
-    children: (string | TreeStructure)[],
-    prefix = '',
-    isLast = true,
-    isRoot = false
-  ): void {
-    const branch = generateTreeStringHelpers.getBranch(isRoot, isLast);
-    context.lines.push(`${prefix}${branch}${generateTreeStringHelpers.formatDirectoryName(name)}`);
-
-    const childPrefix = generateTreeStringHelpers.getChildPrefix(prefix, isRoot, isLast);
-
-    children.forEach((child, index) => {
-      const childIsLast = index === children.length - 1;
-      const isFileChild = typeof child === 'string';
-
-      if (isFileChild) {
-        context.lines.push(
-          `${childPrefix}${childIsLast ? characters.last : characters.contain}${generateTreeStringHelpers.formatFileName(
-            child,
-            context.options.color
-          )}`
-        );
-        return;
-      }
-
-      const subName = Object.keys(child)[0];
-      if (subName === undefined) return;
-
-      const subChildren = child[subName] ?? [];
-      generateTreeStringHelpers.drawDirTree(
-        context,
-        subName,
-        subChildren,
-        childPrefix,
-        childIsLast
-      );
-    });
-  },
-};
+export type { DrawOptions } from './generate-tree-string/types';
 
 /**
  * Main entry point to generate the tree string.
@@ -101,7 +17,7 @@ export function generateTreeString(structure: TreeStructure, options: DrawOption
 
   const context: DrawContext = { lines: [], options };
   const children = structure[rootName] ?? [];
-  generateTreeStringHelpers.drawDirTree(context, rootName, children, '', true, true);
+  drawDirTree(context, rootName, children, '', true, true);
 
   if (options.summary !== undefined) {
     context.lines.push('', formatTreeSummary(options.summary, { color: options.color === true }));
