@@ -15,9 +15,9 @@ export default defineConfig({
       enabled: true,
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      reportsDirectory: path.resolve(__dirname, 'coverage/v8'),
+      reportsDirectory: path.resolve(__dirname, 'test-reports/vitest/unit/coverage'),
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.spec.ts', 'dist/**/*', 'src/cli.ts', 'src/file-tree/cli.ts'], // Excluir CLI de unit tests
+      exclude: ['src/**/*.spec.ts', 'dist/**/*', 'src/cli.ts', 'src/cli/**/*', 'src/file-tree/cli.ts'], // Excluir CLI de unit tests
       thresholds: {
         statements: 80,
         branches: 80,
