@@ -16,7 +16,8 @@ tree [options] [path]
 | :--- | :--- | :--- |
 | `-d`, `--directory <dir>` | Specify a path as an alternative to the positional argument. | Both |
 | `-i`, `--ignore [ig]` | Literal pattern to ignore. Use `|` for alternatives. | Directory/Related |
-| `-e`, `--export [epath]` | Export result to a file. | Both |
+| `-o`, `--output [path]` | Write result to a file. Defaults to `./tree-output.txt` when no path is provided. | Both |
+| `-e`, `--export [epath]` | Legacy alias for `--output`. | Both |
 | `-f`, `--only-folder` | Output folders only. | Directory |
 | `-r`, `--related [mode]` | Show related files. Modes: `imports`, `importers`, `both`. | File |
 | `--root <dir>` | Project root for related-file scans. Defaults to current directory. | Related |
@@ -46,11 +47,18 @@ characters and approximate tokens after stripping terminal color escape sequence
 pasting the tree result into an agent, not the cost of the source files. It does not include shell prompts
 or package-manager wrapper output.
 
+Use `--output` or `-o` to write the rendered result to a file instead of printing it. The path is
+optional: `--output` writes `tree-output.txt` in the current working directory. When a relative path is
+provided, the CLI resolves it from the current working directory. The success message always prints the
+absolute generated file path.
+
 ## Examples
 
 ```bash
 npx @skapxd/tree
 npx @skapxd/tree ./src --ignore "dist|coverage"
+npx @skapxd/tree ./src --output
+npx @skapxd/tree ./src -o /tmp/src-tree.txt
 npx @skapxd/tree src/index.ts
 npx @skapxd/tree src/routes/page.tsx -r
 npx @skapxd/tree src/routes/page.tsx -r imports
