@@ -84,6 +84,7 @@ npx @skapxd/tree ./src --ignore "node_modules|dist|coverage"
 Example:
 
 ```text
+/absolute/path/to/src
 src/
 ├── index.ts (2 lines, 64 chars, ~16 tokens)
 ├── cli.ts (120 lines, 8,400 chars, ~2,100 tokens)
@@ -114,6 +115,7 @@ output context
 └── command output: 1,245 chars, ~312 tokens
 ```
 
+The first line is the absolute path of the analyzed directory. Tree entries remain relative to that root.
 The directory scan respects `.gitignore` and filters common noise such as `.git` and `.DS_Store`.
 The final summary counts the visible tree only, so ignored files and directories are not included.
 Symbolic links are displayed as `name -> target` and are not followed or counted as files.

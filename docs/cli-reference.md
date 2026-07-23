@@ -27,7 +27,8 @@ tree [options] [path]
 | `-V`, `--version` | Print version. | Both |
 | `-h`, `--help` | Print help. | Both |
 
-Directory output ends with a compact summary of the displayed tree: directories, files, total lines,
+Directory output starts with the absolute path of the analyzed directory; every tree entry below it is
+relative to that root. It ends with a compact summary of the displayed tree: directories, files, total lines,
 total chars, approximate tokens, median file size, max line length, largest files by chars, and top extensions.
 Binary and media files remain visible as files, but they are excluded from line/char/token text-context totals.
 The largest-file ranking skips dependency lockfiles such as `yarn.lock`, `package-lock.json`,
