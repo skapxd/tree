@@ -1,4 +1,5 @@
 import { tree } from '@/fs-tree';
+import path from 'node:path';
 import { canColorOutput } from './can-color-output';
 import { hasRelatedOption } from './has-related-option';
 import { type CliOptions } from './types';
@@ -25,5 +26,6 @@ export function handleDirectoryTarget(targetPath: string, options: CliOptions): 
     process.exit(1);
   }
 
-  writeOrPrint(output, options.outputPath, canColorOutput(options.outputPath));
+  const rootedOutput = `${path.resolve(targetPath)}\n${output}`;
+  writeOrPrint(rootedOutput, options.outputPath, canColorOutput(options.outputPath));
 }

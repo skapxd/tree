@@ -75,6 +75,18 @@ describe('tree CLI contract', () => {
     expect(result.stdout.trim()).toBe(readPackageVersion());
   });
 
+  it('prints the absolute directory root before the relative tree', async () => {
+    writeProjectFile(tempDir, 'src/example.ts', 'export const value = 1;\n');
+
+    const result = await runCli([], tempDir);
+    const [rootPath, treeRoot] = result.stdout.split('\n');
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(rootPath).toBe(fs.realpathSync(tempDir));
+    expect(treeRoot).toBe(`${path.basename(tempDir)}/`);
+  });
+
   it('prints a file outline for a TypeScript file', async () => {
     const filePath = writeProjectFile(
       tempDir,

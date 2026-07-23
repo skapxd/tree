@@ -12,6 +12,7 @@ npx @skapxd/tree ./src --ignore "node_modules|dist|coverage"
 ## Output
 
 ```text
+/absolute/path/to/src
 src/
 ├── index.ts (2 lines, 64 chars, ~16 tokens)
 ├── cli.ts (120 lines, 8,400 chars, ~2,100 tokens)
@@ -42,6 +43,7 @@ output context
 └── command output: 1,245 chars, ~312 tokens
 ```
 
+The first line is the absolute path of the analyzed directory. Tree entries remain relative to that root.
 The summary describes only the displayed tree. Ignored paths are not counted, and `--only-folder`
 skips file text stats.
 Symbolic links are rendered as `name -> target`; they are not followed and are not counted as files.
